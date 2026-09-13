@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const LAUNCH_DATE = new Date("2027-01-01T00:00:00");
+const LAUNCH_DATE = new Date("2026-10-04T00:00:00"); // 20 days out
 
 function getTimeLeft() {
   const diff = Math.max(0, LAUNCH_DATE - Date.now());
