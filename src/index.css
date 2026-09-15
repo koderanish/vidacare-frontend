@@ -73,3 +73,18 @@ body {
   color: #b8c6d0;
   font-size: 0.95rem;
 }
+
+.status {
+  font-size: 0.9rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.status.online {
+  color: #7fd8c4;
+}
+
+.status.offline {
+  color: #f28b82;
+}

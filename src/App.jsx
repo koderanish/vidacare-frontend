@@ -14,10 +14,21 @@ function getTimeLeft() {
 
 export default function App() {
   const [timeLeft, setTimeLeft] = useState(getTimeLeft);
+  const [backend, setBackend] = useState("checking");
 
   useEffect(() => {
     const timer = setInterval(() => setTimeLeft(getTimeLeft()), 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/status")
+      .then((res) => {
+        if (!res.ok) throw new Error("bad status");
+        return res.json();
+      })
+      .then((data) => setBackend(data.status === "ok" ? "online" : "offline"))
+      .catch(() => setBackend("offline"));
   }, []);
 
   return (
@@ -36,6 +47,11 @@ export default function App() {
         ))}
       </div>
       <p className="note">We're building something for your health. Stay tuned.</p>
+      <p className={`status ${backend}`} aria-live="polite">
+        {backend === "checking" && "Checking backend…"}
+        {backend === "online" && "● Backend online"}
+        {backend === "offline" && "● Backend offline"}
+      </p>
     </main>
   );
 }
