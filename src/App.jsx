@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 
+// Production API: set VITE_API_URL (e.g. https://api.vidacaretechnologies.ca).
+// Empty string keeps relative /api calls (vite dev proxy → localhost:3000).
+const API_URL = import.meta.env.VITE_API_URL || "";
+
 const LAUNCH_DATE = new Date("2026-10-04T00:00:00"); // 20 days out
 
 function getTimeLeft() {
@@ -22,7 +26,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/status")
+    fetch(`${API_URL}/api/status`)
       .then((res) => {
         if (!res.ok) throw new Error("bad status");
         return res.json();
