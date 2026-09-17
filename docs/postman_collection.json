@@ -1,0 +1,266 @@
+{
+  "info": {
+    "name": "VidaCare Backend API",
+    "description": "Login first (Auth > Login as Admin) - it auto-saves {{accessToken}} for every other request in this collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "patientId", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "verificationId", "value": "" },
+    { "key": "resourceId", "value": "" },
+    { "key": "alertId", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Patient",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/register/patient",
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Test Patient\",\n  \"email\": \"test.patient@example.com\",\n  \"password\": \"Passw0rd1\",\n  \"phone\": \"+15551234567\"\n}" }
+          }
+        },
+        {
+          "name": "Register Doctor",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/register/doctor",
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Dr. Test Doctor\",\n  \"email\": \"test.doctor@example.com\",\n  \"password\": \"Passw0rd1\",\n  \"phone\": \"+15551234567\",\n  \"specialization\": \"Cardiology\",\n  \"licenseNumber\": \"MD-999001\",\n  \"hospital\": \"Test Hospital\",\n  \"yearsOfExperience\": 5\n}" }
+          }
+        },
+        {
+          "name": "Register Caregiver",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/register/caregiver",
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Test Caregiver\",\n  \"email\": \"test.caregiver@example.com\",\n  \"password\": \"Passw0rd1\",\n  \"phone\": \"+15551234567\",\n  \"caregiverType\": \"FAMILY_MEMBER\",\n  \"yearsOfExperience\": 2\n}" }
+          }
+        },
+        {
+          "name": "Login as Admin",
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "const json = pm.response.json();",
+              "if (json.success) {",
+              "  pm.collectionVariables.set('accessToken', json.data.accessToken);",
+              "  pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+              "}"
+            ]}
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/login",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@vidacare.com\",\n  \"password\": \"Admin@12345\"\n}" }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/refresh",
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/logout",
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          }
+        },
+        { "name": "Get Current User (/me)", "request": { "method": "GET", "url": "{{baseUrl}}/auth/me" } }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        { "name": "Dashboard Stats", "request": { "method": "GET", "url": "{{baseUrl}}/admin/dashboard/stats" } },
+        { "name": "Dashboard - Patient Activity Chart", "request": { "method": "GET", "url": "{{baseUrl}}/admin/dashboard/charts/patient-activity" } },
+        { "name": "Dashboard - Registrations Chart", "request": { "method": "GET", "url": "{{baseUrl}}/admin/dashboard/charts/registrations" } },
+        { "name": "Dashboard - Recent Activity", "request": { "method": "GET", "url": "{{baseUrl}}/admin/dashboard/activity" } },
+        { "name": "List Users", "request": { "method": "GET", "url": "{{baseUrl}}/admin/users?page=1&limit=20" } },
+        { "name": "Search Users (q=)", "request": { "method": "GET", "url": "{{baseUrl}}/admin/users?q=olivia" } },
+        { "name": "Filter Users (role/status)", "request": { "method": "GET", "url": "{{baseUrl}}/admin/users?role=DOCTOR&status=PENDING" } },
+        { "name": "Get User By Id", "request": { "method": "GET", "url": "{{baseUrl}}/admin/users/{{userId}}" } },
+        {
+          "name": "Update User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/admin/users/{{userId}}/status",
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"SUSPENDED\",\n  \"reason\": \"Demo suspension via Postman\"\n}" }
+          }
+        },
+        { "name": "List Verifications", "request": { "method": "GET", "url": "{{baseUrl}}/admin/verifications?status=PENDING" } },
+        { "name": "Get Verification By Id", "request": { "method": "GET", "url": "{{baseUrl}}/admin/verifications/{{verificationId}}" } },
+        {
+          "name": "Approve Verification",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/admin/verifications/{{verificationId}}/approve",
+            "body": { "mode": "raw", "raw": "{\n  \"notes\": \"Approved via Postman demo\"\n}" }
+          }
+        },
+        {
+          "name": "Reject Verification",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/admin/verifications/{{verificationId}}/reject",
+            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"Credentials could not be confirmed (demo)\"\n}" }
+          }
+        },
+        { "name": "Get Alert Settings", "request": { "method": "GET", "url": "{{baseUrl}}/admin/alert-settings" } },
+        {
+          "name": "Update Alert Settings",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/admin/alert-settings",
+            "body": { "mode": "raw", "raw": "{\n  \"systolicMax\": 140,\n  \"spo2Min\": 94\n}" }
+          }
+        },
+        { "name": "Assign Doctor to Patient", "request": { "method": "POST", "url": "{{baseUrl}}/admin/patients/{{patientId}}/doctors/{{userId}}" } },
+        { "name": "Remove Doctor from Patient", "request": { "method": "DELETE", "url": "{{baseUrl}}/admin/patients/{{patientId}}/doctors/{{userId}}" } },
+        { "name": "Assign Caregiver to Patient", "request": { "method": "POST", "url": "{{baseUrl}}/admin/patients/{{patientId}}/caregivers/{{userId}}" } },
+        { "name": "Remove Caregiver from Patient", "request": { "method": "DELETE", "url": "{{baseUrl}}/admin/patients/{{patientId}}/caregivers/{{userId}}" } }
+      ]
+    },
+    {
+      "name": "Patients",
+      "item": [
+        { "name": "My Profile (PATIENT)", "request": { "method": "GET", "url": "{{baseUrl}}/patients/me" } },
+        { "name": "List Patients (scoped)", "request": { "method": "GET", "url": "{{baseUrl}}/patients?page=1&limit=20" } },
+        { "name": "Get Patient By Id", "request": { "method": "GET", "url": "{{baseUrl}}/patients/{{patientId}}" } },
+        { "name": "Get Care Team", "request": { "method": "GET", "url": "{{baseUrl}}/patients/{{patientId}}/care-team" } }
+      ]
+    },
+    {
+      "name": "Doctors & Caregivers",
+      "item": [
+        { "name": "List Doctors", "request": { "method": "GET", "url": "{{baseUrl}}/doctors" } },
+        { "name": "Get Doctor By Id", "request": { "method": "GET", "url": "{{baseUrl}}/doctors/{{userId}}" } },
+        { "name": "My Assigned Patients (DOCTOR)", "request": { "method": "GET", "url": "{{baseUrl}}/doctors/me/patients" } },
+        { "name": "List Caregivers", "request": { "method": "GET", "url": "{{baseUrl}}/caregivers" } },
+        { "name": "Get Caregiver By Id", "request": { "method": "GET", "url": "{{baseUrl}}/caregivers/{{userId}}" } },
+        { "name": "My Assigned Patients (CAREGIVER)", "request": { "method": "GET", "url": "{{baseUrl}}/caregivers/me/patients" } }
+      ]
+    },
+    {
+      "name": "Vitals",
+      "item": [
+        {
+          "name": "Record Vital",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/vitals",
+            "body": { "mode": "raw", "raw": "{\n  \"patientId\": \"{{patientId}}\",\n  \"type\": \"BLOOD_PRESSURE\",\n  \"valuePrimary\": 128,\n  \"valueSecondary\": 82,\n  \"source\": \"MANUAL\"\n}" }
+          }
+        },
+        { "name": "List Vitals for Patient", "request": { "method": "GET", "url": "{{baseUrl}}/vitals/patient/{{patientId}}?type=BLOOD_PRESSURE" } },
+        { "name": "Latest Vitals", "request": { "method": "GET", "url": "{{baseUrl}}/vitals/patient/{{patientId}}/latest" } },
+        { "name": "Vital Trends (7 days)", "request": { "method": "GET", "url": "{{baseUrl}}/vitals/patient/{{patientId}}/trends?days=7" } }
+      ]
+    },
+    {
+      "name": "Journal",
+      "item": [
+        {
+          "name": "Create Journal Entry",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/journal",
+            "body": { "mode": "raw", "raw": "{\n  \"patientId\": \"{{patientId}}\",\n  \"mood\": \"CALM\",\n  \"painLevel\": 2,\n  \"symptoms\": [\"Mild fatigue\"],\n  \"notes\": \"Rested after a walk.\"\n}" }
+          }
+        },
+        { "name": "List Journal Entries", "request": { "method": "GET", "url": "{{baseUrl}}/journal/patient/{{patientId}}" } }
+      ]
+    },
+    {
+      "name": "Treatment Plans",
+      "item": [
+        {
+          "name": "Create Treatment Plan (DOCTOR)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/treatment-plans",
+            "body": { "mode": "raw", "raw": "{\n  \"patientId\": \"{{patientId}}\",\n  \"title\": \"Hypertension Management\",\n  \"startDate\": \"2026-06-01\",\n  \"medications\": [\n    { \"name\": \"Lisinopril\", \"dosage\": \"10 mg\", \"frequency\": \"Once daily\", \"durationDays\": 90 }\n  ]\n}" }
+          }
+        },
+        { "name": "List Plans for Patient", "request": { "method": "GET", "url": "{{baseUrl}}/treatment-plans/patient/{{patientId}}" } }
+      ]
+    },
+    {
+      "name": "Alerts",
+      "item": [
+        { "name": "List Alerts", "request": { "method": "GET", "url": "{{baseUrl}}/alerts?status=OPEN" } },
+        { "name": "Get Alert By Id", "request": { "method": "GET", "url": "{{baseUrl}}/alerts/{{alertId}}" } },
+        { "name": "Mark Alert Reviewed", "request": { "method": "PATCH", "url": "{{baseUrl}}/alerts/{{alertId}}/review" } },
+        { "name": "Resolve Alert", "request": { "method": "PATCH", "url": "{{baseUrl}}/alerts/{{alertId}}/resolve" } }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        { "name": "List Notifications", "request": { "method": "GET", "url": "{{baseUrl}}/notifications" } },
+        { "name": "Mark All Read", "request": { "method": "PATCH", "url": "{{baseUrl}}/notifications/read-all" } }
+      ]
+    },
+    {
+      "name": "Resources",
+      "item": [
+        { "name": "List Resources", "request": { "method": "GET", "url": "{{baseUrl}}/resources" } },
+        {
+          "name": "Create Resource (ADMIN)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const json = pm.response.json();",
+            "if (json.success) pm.collectionVariables.set('resourceId', json.data.id);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/resources",
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Postman Demo Resource\",\n  \"category\": \"GENERAL_HEALTH\",\n  \"description\": \"Created via Postman\",\n  \"content\": \"Sample content body.\",\n  \"authorName\": \"VidaCare Education\",\n  \"status\": \"DRAFT\"\n}" }
+          }
+        },
+        { "name": "Publish Resource (ADMIN)", "request": { "method": "PATCH", "url": "{{baseUrl}}/resources/{{resourceId}}/publish" } }
+      ]
+    },
+    {
+      "name": "Assistant",
+      "item": [
+        {
+          "name": "Chat (stub)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/assistant/chat",
+            "body": { "mode": "raw", "raw": "{\n  \"message\": \"What does my latest blood pressure reading mean?\"\n}" }
+          }
+        }
+      ]
+    }
+  ]
+}
