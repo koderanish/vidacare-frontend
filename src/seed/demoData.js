@@ -225,8 +225,10 @@ async function seedVitalsAndAlerts(patients) {
         let valueSecondary = baseline.secondary ? jitterValue(baseline.secondary, 5) : undefined;
 
         // Deliberately push a handful of readings out of range for variety
-        // in the alert list — patients 0, 2, 4 get abnormal readings on day 1.
-        const isRecent = day <= 1;
+        // in the alert list — patients 0, 2, 4, 5 get one abnormal reading
+        // each, on day 0 only (not day <= 1, which produced two duplicate
+        // alerts per patient since both days crossed the threshold).
+        const isRecent = day === 0;
         if (isRecent && pIdx === 0 && type === "BLOOD_PRESSURE") {
           valuePrimary = 148;
           valueSecondary = 92;
