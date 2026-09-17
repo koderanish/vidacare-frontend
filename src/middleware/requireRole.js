@@ -1,0 +1,13 @@
+const ApiError = require("../utils/apiError");
+
+function requireRole(...roles) {
+  return (req, res, next) => {
+    if (!req.user) return next(ApiError.unauthorized());
+    if (!roles.includes(req.user.role)) {
+      return next(ApiError.forbidden("This action requires a different role"));
+    }
+    next();
+  };
+}
+
+module.exports = requireRole;

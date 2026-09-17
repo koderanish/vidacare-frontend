@@ -1,0 +1,580 @@
+// VidaCare backend — Prisma schema
+// PostgreSQL. See docs/DATABASE.md for design notes.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum Role {
+  PATIENT
+  DOCTOR
+  CAREGIVER
+  ADMIN
+}
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+  SUSPENDED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  UNSPECIFIED
+}
+
+enum CaregiverType {
+  FAMILY_MEMBER
+  PROFESSIONAL_CAREGIVER
+  LEGAL_GUARDIAN
+  OTHER
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AssignmentStatus {
+  ACTIVE
+  ENDED
+}
+
+enum VitalType {
+  BLOOD_PRESSURE
+  HEART_RATE
+  SPO2
+  BLOOD_SUGAR
+  WEIGHT
+}
+
+enum VitalSource {
+  MANUAL
+  DEMO_DEVICE
+}
+
+enum Mood {
+  CALM
+  GOOD
+  ANXIOUS
+  SAD
+  STRESSED
+  ENERGETIC
+}
+
+enum PlanStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum AlertType {
+  HIGH_BLOOD_PRESSURE
+  LOW_SPO2
+  ELEVATED_BLOOD_SUGAR
+  ABNORMAL_HEART_RATE
+  MISSED_READING
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  OPEN
+  REVIEWED
+  RESOLVED
+}
+
+enum ResourceCategory {
+  HEART_HEALTH
+  DIABETES
+  MENTAL_WELLNESS
+  NUTRITION
+  EXERCISE
+  MEDICATION
+  GENERAL_HEALTH
+}
+
+enum ResourceStatus {
+  DRAFT
+  PUBLISHED
+  UNPUBLISHED
+}
+
+enum NotificationType {
+  HEALTH_ALERT
+  CARE_UPDATE
+  ASSIGNMENT
+  CONTENT
+  REMINDER
+  SYSTEM
+}
+
+// ============================================================
+// USERS & PROFILES
+// ============================================================
+
+model User {
+  id                 String        @id @default(uuid())
+  email              String        @unique
+  passwordHash       String
+  fullName           String
+  phone              String?
+  role               Role
+  status             AccountStatus @default(PENDING)
+  emailVerifiedAt    DateTime?
+  mustChangePassword Boolean       @default(false)
+  lastLoginAt        DateTime?
+  createdById        String?
+  createdBy          User?         @relation("UserCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdUsers       User[]        @relation("UserCreatedBy")
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  patientProfile   PatientProfile?
+  doctorProfile    DoctorProfile?
+  caregiverProfile CaregiverProfile?
+
+  verificationRequests  VerificationRequest[] @relation("VerificationApplicant")
+  reviewedVerifications VerificationRequest[] @relation("VerificationReviewer")
+
+  assignedDoctorFor             PatientDoctorAssignment[]    @relation("AssignmentDoctor")
+  assignedByDoctorAssignment    PatientDoctorAssignment[]    @relation("AssignmentDoctorAssignedBy")
+  assignedCaregiverFor          PatientCaregiverAssignment[] @relation("AssignmentCaregiver")
+  assignedByCaregiverAssignment PatientCaregiverAssignment[] @relation("AssignmentCaregiverAssignedBy")
+
+  vitalsRecorded          Vital[]                  @relation("VitalCreatedBy")
+  treatmentPlans          TreatmentPlan[]          @relation("TreatmentPlanDoctor")
+  planEvents              TreatmentPlanEvent[]     @relation("PlanEventActor")
+  reviewedAlerts          Alert[]                  @relation("AlertReviewer")
+  notifications           Notification[]           @relation("NotificationRecipient")
+  resourcesCreated        HealthResource[]         @relation("ResourceCreatedBy")
+  activityLogEntries      ActivityLog[]            @relation("ActivityActor")
+  refreshTokens           RefreshToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+  userStatusChanges       UserStatusChange[]       @relation("UserStatusChangedBy")
+
+  @@index([role, status])
+  @@map("users")
+}
+
+model PatientProfile {
+  id                    String    @id @default(uuid())
+  userId                String    @unique
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patientCode           String    @unique
+  dateOfBirth           DateTime?
+  gender                Gender    @default(UNSPECIFIED)
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  doctorAssignments    PatientDoctorAssignment[]
+  caregiverAssignments PatientCaregiverAssignment[]
+  vitals               Vital[]
+  journalEntries       JournalEntry[]
+  treatmentPlans       TreatmentPlan[]
+  alerts               Alert[]
+
+  @@map("patient_profiles")
+}
+
+model DoctorProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialization    String
+  licenseNumber     String   @unique
+  hospital          String
+  yearsOfExperience Int      @default(0)
+  bio               String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  patientAssignments PatientDoctorAssignment[]
+  treatmentPlans     TreatmentPlan[]
+
+  @@map("doctor_profiles")
+}
+
+model CaregiverProfile {
+  id                String        @id @default(uuid())
+  userId            String        @unique
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  caregiverType     CaregiverType
+  yearsOfExperience Int           @default(0)
+  relationshipNotes String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  patientAssignments PatientCaregiverAssignment[]
+
+  @@map("caregiver_profiles")
+}
+
+// ============================================================
+// VERIFICATION (admin review workflow — NOT real license verification)
+// ============================================================
+
+model VerificationRequest {
+  id                String             @id @default(uuid())
+  userId            String
+  user              User               @relation("VerificationApplicant", fields: [userId], references: [id], onDelete: Cascade)
+  role              Role
+  status            VerificationStatus @default(PENDING)
+  documentType      String?
+  documentReference String?
+  issuingBody       String?
+  notes             String?
+  submittedAt       DateTime           @default(now())
+  reviewedById      String?
+  reviewedBy        User?              @relation("VerificationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt        DateTime?
+  decisionReason    String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([status, role])
+  @@index([userId])
+  @@map("verification_requests")
+}
+
+// ============================================================
+// ASSIGNMENTS
+// ============================================================
+
+model PatientDoctorAssignment {
+  id              String           @id @default(uuid())
+  patientId       String
+  patient         PatientProfile   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId        String
+  doctor          User             @relation("AssignmentDoctor", fields: [doctorId], references: [id], onDelete: Cascade)
+  status          AssignmentStatus @default(ACTIVE)
+  assignedAt      DateTime         @default(now())
+  endedAt         DateTime?
+  assignedById    String?
+  assignedBy      User?            @relation("AssignmentDoctorAssignedBy", fields: [assignedById], references: [id], onDelete: SetNull)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  DoctorProfile   DoctorProfile?   @relation(fields: [doctorProfileId], references: [id])
+  doctorProfileId String?
+
+  @@index([patientId, status])
+  @@index([doctorId, status])
+  @@map("patient_doctor_assignments")
+}
+
+model PatientCaregiverAssignment {
+  id           String           @id @default(uuid())
+  patientId    String
+  patient      PatientProfile   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  caregiverId  String
+  caregiver    User             @relation("AssignmentCaregiver", fields: [caregiverId], references: [id], onDelete: Cascade)
+  status       AssignmentStatus @default(ACTIVE)
+  assignedAt   DateTime         @default(now())
+  endedAt      DateTime?
+  assignedById String?
+  assignedBy   User?            @relation("AssignmentCaregiverAssignedBy", fields: [assignedById], references: [id], onDelete: SetNull)
+
+  canViewProfile   Boolean @default(true)
+  canViewVitals    Boolean @default(true)
+  canViewJournal   Boolean @default(true)
+  canViewTreatment Boolean @default(true)
+  canReceiveAlerts Boolean @default(true)
+
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  CaregiverProfile   CaregiverProfile? @relation(fields: [caregiverProfileId], references: [id])
+  caregiverProfileId String?
+
+  @@index([patientId, status])
+  @@index([caregiverId, status])
+  @@map("patient_caregiver_assignments")
+}
+
+// ============================================================
+// VITALS
+// ============================================================
+
+model Vital {
+  id             String         @id @default(uuid())
+  patientId      String
+  patient        PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  type           VitalType
+  valuePrimary   Float
+  valueSecondary Float?
+  unit           String
+  source         VitalSource    @default(MANUAL)
+  recordedAt     DateTime       @default(now())
+  notes          String?
+  createdById    String?
+  createdBy      User?          @relation("VitalCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  alerts Alert[]
+
+  @@index([patientId, type, recordedAt])
+  @@map("vitals")
+}
+
+// ============================================================
+// JOURNAL
+// ============================================================
+
+model JournalEntry {
+  id        String         @id @default(uuid())
+  patientId String
+  patient   PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  mood      Mood
+  painLevel Int
+  symptoms  String[]       @default([])
+  notes     String?
+  entryDate DateTime       @default(now())
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([patientId, entryDate])
+  @@map("journal_entries")
+}
+
+// ============================================================
+// TREATMENT
+// ============================================================
+
+model TreatmentPlan {
+  id               String         @id @default(uuid())
+  patientId        String
+  patient          PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId         String
+  doctor           User           @relation("TreatmentPlanDoctor", fields: [doctorId], references: [id], onDelete: Restrict)
+  doctorProfileId  String?
+  doctorProfile    DoctorProfile? @relation(fields: [doctorProfileId], references: [id], onDelete: SetNull)
+  title            String
+  description      String?
+  status           PlanStatus     @default(ACTIVE)
+  startDate        DateTime
+  endDate          DateTime?
+  lastReviewedAt   DateTime?
+  adherencePercent Int            @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  medications Medication[]
+  events      TreatmentPlanEvent[]
+
+  @@index([patientId, status])
+  @@map("treatment_plans")
+}
+
+model Medication {
+  id              String        @id @default(uuid())
+  treatmentPlanId String
+  treatmentPlan   TreatmentPlan @relation(fields: [treatmentPlanId], references: [id], onDelete: Cascade)
+  name            String
+  dosage          String
+  frequency       String
+  durationDays    Int?
+  instructions    String?
+  sortOrder       Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([treatmentPlanId])
+  @@map("medications")
+}
+
+model TreatmentPlanEvent {
+  id              String        @id @default(uuid())
+  treatmentPlanId String
+  treatmentPlan   TreatmentPlan @relation(fields: [treatmentPlanId], references: [id], onDelete: Cascade)
+  actorUserId     String?
+  actor           User?         @relation("PlanEventActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  eventType       String
+  description     String
+  createdAt       DateTime      @default(now())
+
+  @@index([treatmentPlanId, createdAt])
+  @@map("treatment_plan_events")
+}
+
+// ============================================================
+// ALERTS
+// ============================================================
+
+model Alert {
+  id                   String         @id @default(uuid())
+  patientId            String
+  patient              PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  vitalId              String?
+  vital                Vital?         @relation(fields: [vitalId], references: [id], onDelete: SetNull)
+  type                 AlertType
+  title                String
+  message              String
+  severity             AlertSeverity
+  status               AlertStatus    @default(OPEN)
+  thresholdDescription String?
+  reviewedById         String?
+  reviewedBy           User?          @relation("AlertReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt           DateTime?
+  resolvedAt           DateTime?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  @@index([status, createdAt])
+  @@index([patientId, createdAt])
+  @@map("alerts")
+}
+
+model AlertSettings {
+  id                 String   @id @default(uuid())
+  systolicMax        Int      @default(140)
+  diastolicMax       Int      @default(90)
+  spo2Min            Int      @default(94)
+  bloodSugarMax      Int      @default(160)
+  heartRateMin       Int      @default(50)
+  heartRateMax       Int      @default(120)
+  missedReadingHours Int      @default(24)
+  updatedAt          DateTime @updatedAt
+  updatedById        String?
+
+  @@map("alert_settings")
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+model Notification {
+  id              String           @id @default(uuid())
+  recipientUserId String
+  recipient       User             @relation("NotificationRecipient", fields: [recipientUserId], references: [id], onDelete: Cascade)
+  type            NotificationType
+  title           String
+  body            String
+  entityType      String?
+  entityId        String?
+  readAt          DateTime?
+  createdAt       DateTime         @default(now())
+
+  @@index([recipientUserId, readAt])
+  @@map("notifications")
+}
+
+// ============================================================
+// HEALTH RESOURCES
+// ============================================================
+
+model HealthResource {
+  id            String           @id @default(uuid())
+  title         String
+  slug          String           @unique
+  category      ResourceCategory
+  description   String
+  content       String
+  authorName    String
+  coverImageUrl String?
+  status        ResourceStatus   @default(DRAFT)
+  publishedAt   DateTime?
+  createdById   String?
+  createdBy     User?            @relation("ResourceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([category, status])
+  @@map("health_resources")
+}
+
+// ============================================================
+// AUDIT / ACTIVITY
+// ============================================================
+
+model ActivityLog {
+  id          String   @id @default(uuid())
+  actorUserId String?
+  actor       User?    @relation("ActivityActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  action      String
+  entityType  String
+  entityId    String?
+  summary     String
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("activity_log")
+}
+
+model UserStatusChange {
+  id          String        @id @default(uuid())
+  userId      String
+  fromStatus  AccountStatus
+  toStatus    AccountStatus
+  reason      String?
+  changedById String?
+  changedBy   User?         @relation("UserStatusChangedBy", fields: [changedById], references: [id], onDelete: SetNull)
+  createdAt   DateTime      @default(now())
+
+  @@index([userId])
+  @@map("user_status_changes")
+}
+
+// ============================================================
+// AUTH TOKENS
+// ============================================================
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("email_verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
