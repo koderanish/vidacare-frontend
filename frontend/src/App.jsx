@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
+import { BrandLoaderOverlay } from "./components/ui/BrandLoader";
 
 import Login from "./pages/Login";
 import PendingStatus from "./pages/PendingStatus";
@@ -17,7 +18,7 @@ import Settings from "./pages/Settings";
 
 function LoginGate() {
   const { user, loading } = useAuth();
-  if (loading) return null;
+  if (loading) return <BrandLoaderOverlay label="Loading..." />;
   if (user?.status === "ACTIVE") return <Navigate to="/" replace />;
   if (user) return <Navigate to="/pending" replace />;
   return <Login />;
@@ -54,7 +55,7 @@ export default function App() {
 
 function RequireAnyUser({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return null;
+  if (loading) return <BrandLoaderOverlay label="Loading..." />;
   if (!user) return <Navigate to="/login" replace />;
   return children;
 }

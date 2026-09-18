@@ -1,7 +1,9 @@
+import { BrandLoader } from "./BrandLoader";
+
 export function LoadingState({ label = "Loading..." }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-16 text-ink-500">
-      <span className="h-6 w-6 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
+      <BrandLoader size="sm" />
       <p className="text-sm">{label}</p>
     </div>
   );

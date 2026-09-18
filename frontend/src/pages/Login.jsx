@@ -43,8 +43,9 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
+      // login() holds this promise open for the branded transition overlay
+      // (rendered by AuthProvider, above the router) before resolving.
       const user = await login(email, password);
-      toast.success(`Welcome back, ${user.fullName.split(" ")[0]}`);
       if (user.status !== "ACTIVE") {
         navigate("/pending", { replace: true });
       } else {
@@ -54,7 +55,6 @@ export default function Login() {
       const message = apiErrorMessage(err);
       setError(message);
       toast.error(message);
-    } finally {
       setLoading(false);
     }
   }
