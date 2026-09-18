@@ -13,8 +13,8 @@ const NAV = [
 
 export function Sidebar() {
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-ink-900/5 bg-white px-4 py-6 md:flex">
-      <div className="mb-8 flex items-center gap-2 px-2">
+    <aside className="hidden w-64 shrink-0 flex-col overflow-y-auto border-r border-ink-900/5 bg-white px-4 py-6 md:flex">
+      <div className="mb-8 flex shrink-0 items-center gap-2 px-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-600 text-white">♥</div>
         <div>
           <p className="text-sm font-semibold text-ink-900">VidaCare</p>
@@ -38,7 +38,7 @@ export function Sidebar() {
           </NavLink>
         ))}
       </nav>
-      <p className="px-2 text-[11px] text-ink-300">© 2026 VidaCare · Prototype</p>
+      <p className="shrink-0 px-2 text-[11px] text-ink-300">© 2026 VidaCare · Prototype</p>
     </aside>
   );
 }
