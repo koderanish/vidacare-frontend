@@ -1,4 +1,5 @@
 import { BrandLoader } from "./BrandLoader";
+import { useClickPulse, ClickPulseRing } from "../../hooks/useClickPulse";
 
 export function LoadingState({ label = "Loading..." }) {
   return (
@@ -10,12 +11,20 @@ export function LoadingState({ label = "Loading..." }) {
 }
 
 export function ErrorState({ message = "Something went wrong.", onRetry }) {
+  const [pulsing, pulse] = useClickPulse();
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 text-rose-600">!</div>
       <p className="text-sm text-ink-700">{message}</p>
       {onRetry && (
-        <button onClick={onRetry} className="text-sm font-medium text-teal-700 hover:underline">
+        <button
+          onClick={() => {
+            pulse();
+            onRetry();
+          }}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+        >
+          {pulsing && <ClickPulseRing />}
           Try again
         </button>
       )}

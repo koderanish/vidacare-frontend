@@ -7,6 +7,7 @@ import { Button } from "../components/ui/Button";
 import { LoadingState, ErrorState, EmptyState } from "../components/ui/States";
 import { notificationsApi } from "../api/notifications";
 import { apiErrorMessage } from "../api/client";
+import { ClickPulseRing } from "../hooks/useClickPulse";
 
 export default function Notifications() {
   const qc = useQueryClient();
@@ -46,13 +47,21 @@ export default function Notifications() {
                       <p className="mt-1 text-xs text-ink-300">{new Date(n.createdAt).toLocaleString()}</p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 gap-2">
+                  <div className="flex shrink-0 items-center gap-2">
                     {!n.readAt && (
-                      <button className="text-xs text-teal-700 hover:underline" onClick={() => markReadM.mutate(n.id)}>
+                      <button
+                        className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                        onClick={() => markReadM.mutate(n.id)}
+                      >
+                        {markReadM.isPending && markReadM.variables === n.id && <ClickPulseRing />}
                         Mark read
                       </button>
                     )}
-                    <button className="text-xs text-rose-600 hover:underline" onClick={() => removeM.mutate(n.id)}>
+                    <button
+                      className="inline-flex items-center gap-1.5 text-xs text-rose-600 hover:underline"
+                      onClick={() => removeM.mutate(n.id)}
+                    >
+                      {removeM.isPending && removeM.variables === n.id && <ClickPulseRing />}
                       Delete
                     </button>
                   </div>

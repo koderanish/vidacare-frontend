@@ -1,11 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useClickPulse, ClickPulseRing } from "../../hooks/useClickPulse";
 
 export function Topbar({ title, subtitle, actions }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [pulsing, pulse] = useClickPulse();
 
   async function handleLogout() {
+    pulse();
     await logout();
     navigate("/login", { replace: true });
   }
@@ -26,8 +29,9 @@ export function Topbar({ title, subtitle, actions }) {
         </div>
         <button
           onClick={handleLogout}
-          className="rounded-lg border border-ink-900/10 px-3 py-1.5 text-sm text-ink-700 hover:bg-ink-900/5"
+          className="inline-flex items-center gap-2 rounded-lg border border-ink-900/10 px-3 py-1.5 text-sm text-ink-700 hover:bg-ink-900/5"
         >
+          {pulsing && <ClickPulseRing />}
           Log out
         </button>
       </div>
