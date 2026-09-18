@@ -24,7 +24,7 @@ export function BrandLoader({ size = "md", className = "" }) {
         style={{ borderWidth: s.border, borderStyle: "solid", animationDuration: "0.85s" }}
       />
       <span
-        className="flex items-center justify-center rounded-full bg-teal-600 text-white"
+        className="flex items-center justify-center rounded-full bg-primary text-primary-foreground"
         style={{ width: s.logo, height: s.logo }}
       >
         <HeartPulse style={{ width: s.icon, height: s.icon }} />

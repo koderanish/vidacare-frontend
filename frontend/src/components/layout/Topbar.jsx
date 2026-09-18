@@ -19,7 +19,7 @@ export function Topbar({ title, subtitle, actions }) {
       <div className="flex items-center gap-3">
         {actions}
         <div className="flex items-center gap-2 rounded-full border border-ink-900/10 py-1 pl-1 pr-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-teal-100 text-xs font-semibold text-teal-700">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-soft text-xs font-semibold text-primary">
             {(user?.fullName || "A").slice(0, 1)}
           </div>
           <span className="text-sm font-medium text-ink-700">{user?.fullName}</span>

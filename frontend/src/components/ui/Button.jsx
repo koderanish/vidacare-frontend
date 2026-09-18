@@ -1,7 +1,7 @@
 const VARIANTS = {
-  primary: "bg-teal-600 text-white hover:bg-teal-700 disabled:bg-teal-300",
+  primary: "bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50",
   secondary: "bg-white text-ink-700 border border-ink-900/10 hover:bg-ink-900/5",
-  outline: "bg-transparent text-teal-700 border border-teal-600 hover:bg-teal-50",
+  outline: "bg-transparent text-primary border border-primary hover:bg-primary-soft",
   danger: "bg-white text-rose-600 border border-rose-200 hover:bg-rose-50",
   dangerSolid: "bg-rose-600 text-white hover:bg-rose-700",
   ghost: "bg-transparent text-ink-700 hover:bg-ink-900/5",
