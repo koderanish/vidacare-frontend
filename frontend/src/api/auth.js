@@ -7,4 +7,6 @@ export const authApi = {
   registerDoctor: (body) => client.post("/auth/register/doctor", body).then((r) => r.data.data),
   registerCaregiver: (body) => client.post("/auth/register/caregiver", body).then((r) => r.data.data),
   registerPatient: (body) => client.post("/auth/register/patient", body).then((r) => r.data.data),
+  forgotPassword: (email) => client.post("/auth/forgot-password", { email }).then((r) => r.data.data),
+  resetPassword: (token, password) => client.post("/auth/reset-password", { token, password }).then((r) => r.data.data),
 };

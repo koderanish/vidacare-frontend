@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
-import { HeartPulse, Eye, EyeOff, LockKeyhole } from "lucide-react";
+import { HeartPulse, Eye, EyeOff, LockKeyhole, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { apiErrorMessage } from "../api/client";
+import { authApi } from "../api/auth";
 
 // Exact design tokens from the Flowstep reference (Screen 1), not
 // approximated: primary/left-panel come from the screen's own source;
@@ -35,6 +36,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [touchedEmail, setTouchedEmail] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
 
   const emailInvalid = touchedEmail && email.length > 0 && !emailPattern.test(email);
 
@@ -205,7 +207,12 @@ export default function Login() {
                   Remember me for 30 days
                 </label>
               </div>
-              <button type="button" className="text-sm font-medium" style={{ color: primary }}>
+              <button
+                type="button"
+                className="text-sm font-medium"
+                style={{ color: primary }}
+                onClick={() => setForgotOpen(true)}
+              >
                 Forgot password?
               </button>
             </div>
@@ -242,6 +249,128 @@ export default function Login() {
           </div>
         </div>
       </main>
+
+      {forgotOpen && <ForgotPasswordModal onClose={() => setForgotOpen(false)} />}
+    </div>
+  );
+}
+
+function ForgotPasswordModal({ onClose }) {
+  const [step, setStep] = useState("request"); // request -> reset
+  const [email, setEmail] = useState("");
+  const [token, setToken] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleRequest(e) {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const result = await authApi.forgotPassword(email);
+      toast.success("If that account exists, a reset link was sent.");
+      // Email delivery is stubbed in this prototype; the dev-mode response
+      // returns the raw token directly so the flow is testable end-to-end.
+      if (result?.devResetToken) setToken(result.devResetToken);
+      setStep("reset");
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleReset(e) {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await authApi.resetPassword(token, newPassword);
+      toast.success("Password reset. You can now sign in.");
+      onClose();
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div
+        className="w-full max-w-sm rounded-2xl bg-white p-6"
+        style={{ border: `1px solid ${border}`, boxShadow: "0px 20px 60px rgba(9, 9, 21, 0.08)" }}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-semibold" style={{ color: foreground }}>
+            {step === "request" ? "Reset your password" : "Choose a new password"}
+          </h3>
+          <button type="button" onClick={onClose} aria-label="Close" style={{ color: mutedForeground }}>
+            <X className="size-4" />
+          </button>
+        </div>
+
+        {step === "request" ? (
+          <form onSubmit={handleRequest} className="flex flex-col gap-3">
+            <p className="text-sm" style={{ color: mutedForeground }}>
+              Enter your account email and we'll send a reset link.
+            </p>
+            <input
+              type="email"
+              required
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="admin@vidacare.com"
+              className="h-11 rounded-lg px-3 text-sm outline-none focus:ring-1"
+              style={{ border: `1px solid ${border}`, "--tw-ring-color": primary }}
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-1 flex h-11 w-full items-center justify-center gap-2 rounded-lg text-sm font-medium text-white disabled:opacity-70"
+              style={{ backgroundColor: primary }}
+            >
+              {loading && <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />}
+              Send reset link
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleReset} className="flex flex-col gap-3">
+            <label className="flex flex-col gap-1">
+              <span className="text-sm font-medium" style={{ color: foreground }}>Reset token</span>
+              <input
+                required
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                placeholder="Paste the token from your reset email"
+                className="h-11 rounded-lg px-3 text-sm outline-none focus:ring-1"
+                style={{ border: `1px solid ${border}`, "--tw-ring-color": primary }}
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-sm font-medium" style={{ color: foreground }}>New password</span>
+              <input
+                type="password"
+                required
+                minLength={8}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="At least 8 characters"
+                className="h-11 rounded-lg px-3 text-sm outline-none focus:ring-1"
+                style={{ border: `1px solid ${border}`, "--tw-ring-color": primary }}
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-1 flex h-11 w-full items-center justify-center gap-2 rounded-lg text-sm font-medium text-white disabled:opacity-70"
+              style={{ backgroundColor: primary }}
+            >
+              {loading && <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />}
+              Reset password
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

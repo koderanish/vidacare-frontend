@@ -69,6 +69,8 @@ export default function DashboardOverview() {
             <p className="mb-4 text-xs text-ink-500">Vital readings recorded per day, last 7 days</p>
             {activityChartQ.isLoading ? (
               <LoadingState label="Loading chart..." />
+            ) : activityChartQ.isError ? (
+              <ErrorState message={apiErrorMessage(activityChartQ.error)} onRetry={activityChartQ.refetch} />
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={activityChartQ.data || []}>
@@ -92,6 +94,8 @@ export default function DashboardOverview() {
             <p className="mb-4 text-xs text-ink-500">New accounts per month, last 6 months</p>
             {regChartQ.isLoading ? (
               <LoadingState label="Loading chart..." />
+            ) : regChartQ.isError ? (
+              <ErrorState message={apiErrorMessage(regChartQ.error)} onRetry={regChartQ.refetch} />
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={regChartQ.data || []}>
@@ -111,6 +115,7 @@ export default function DashboardOverview() {
             <h3 className="text-sm font-semibold text-ink-900">Recent system activity</h3>
           </div>
           {recentQ.isLoading && <LoadingState label="Loading activity..." />}
+          {recentQ.isError && <ErrorState message={apiErrorMessage(recentQ.error)} onRetry={recentQ.refetch} />}
           {recentQ.data && recentQ.data.length === 0 && <EmptyState title="No activity in this time range" />}
           {recentQ.data && recentQ.data.length > 0 && (
             <ul className="divide-y divide-ink-900/5">

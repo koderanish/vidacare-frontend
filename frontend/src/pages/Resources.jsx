@@ -7,6 +7,7 @@ import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { LoadingState, ErrorState, EmptyState } from "../components/ui/States";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { resourcesApi } from "../api/resources";
 import { apiErrorMessage } from "../api/client";
 
@@ -19,7 +20,9 @@ export default function Resources() {
   const [category, setCategory] = useState("");
   const [q, setQ] = useState("");
   const [formOpen, setFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const qc = useQueryClient();
 
   const query = useQuery({
@@ -31,8 +34,17 @@ export default function Resources() {
     mutationFn: resourcesApi.create,
     onSuccess: () => {
       toast.success("Resource created");
-      setFormOpen(false);
-      setForm(emptyForm);
+      closeForm();
+      qc.invalidateQueries({ queryKey: ["resources"] });
+    },
+    onError: (err) => toast.error(apiErrorMessage(err)),
+  });
+
+  const updateM = useMutation({
+    mutationFn: ({ id, body }) => resourcesApi.update(id, body),
+    onSuccess: () => {
+      toast.success("Resource updated");
+      closeForm();
       qc.invalidateQueries({ queryKey: ["resources"] });
     },
     onError: (err) => toast.error(apiErrorMessage(err)),
@@ -46,6 +58,35 @@ export default function Resources() {
     },
     onError: (err) => toast.error(apiErrorMessage(err)),
   });
+
+  const deleteM = useMutation({
+    mutationFn: (id) => resourcesApi.remove(id),
+    onSuccess: () => {
+      toast.success("Resource deleted");
+      setDeleteTarget(null);
+      qc.invalidateQueries({ queryKey: ["resources"] });
+    },
+    onError: (err) => toast.error(apiErrorMessage(err)),
+  });
+
+  function closeForm() {
+    setFormOpen(false);
+    setEditingId(null);
+    setForm(emptyForm);
+  }
+
+  function openEdit(r) {
+    setEditingId(r.id);
+    setForm({
+      title: r.title,
+      category: r.category,
+      description: r.description,
+      content: r.content,
+      authorName: r.authorName,
+      status: r.status,
+    });
+    setFormOpen(true);
+  }
 
   return (
     <AdminShell>
@@ -89,7 +130,13 @@ export default function Resources() {
                 <h3 className="font-semibold text-ink-900">{r.title}</h3>
                 <p className="line-clamp-2 text-sm text-ink-500">{r.description}</p>
                 <p className="text-xs text-ink-400">{r.authorName} · {new Date(r.createdAt).toLocaleDateString()}</p>
-                <div className="mt-2 flex justify-end">
+                <div className="mt-2 flex flex-wrap justify-end gap-2">
+                  <Button variant="secondary" onClick={() => openEdit(r)}>
+                    Edit
+                  </Button>
+                  <Button variant="danger" onClick={() => setDeleteTarget(r)}>
+                    Delete
+                  </Button>
                   {r.status === "PUBLISHED" ? (
                     <Button variant="outline" loading={publishM.isPending && publishM.variables?.id === r.id} onClick={() => publishM.mutate({ id: r.id, publish: false })}>
                       Unpublish
@@ -109,7 +156,7 @@ export default function Resources() {
       {formOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 px-4">
           <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl2 bg-white p-6 shadow-card">
-            <h3 className="text-base font-semibold text-ink-900">Create resource</h3>
+            <h3 className="text-base font-semibold text-ink-900">{editingId ? "Edit resource" : "Create resource"}</h3>
             <div className="mt-4 space-y-3">
               <Field label="Title">
                 <input className="input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
@@ -130,18 +177,31 @@ export default function Resources() {
               </Field>
             </div>
             <div className="mt-5 flex justify-end gap-2">
-              <Button variant="secondary" onClick={() => setFormOpen(false)}>Cancel</Button>
+              <Button variant="secondary" onClick={closeForm}>Cancel</Button>
               <Button
-                loading={createM.isPending}
+                loading={editingId ? updateM.isPending : createM.isPending}
                 disabled={!form.title || !form.description || !form.content}
-                onClick={() => createM.mutate(form)}
+                onClick={() =>
+                  editingId ? updateM.mutate({ id: editingId, body: form }) : createM.mutate(form)
+                }
               >
-                Create resource
+                {editingId ? "Save changes" : "Create resource"}
               </Button>
             </div>
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete resource?"
+        description={deleteTarget ? `"${deleteTarget.title}" will be permanently removed. This cannot be undone.` : ""}
+        confirmLabel="Delete"
+        danger
+        loading={deleteM.isPending}
+        onConfirm={() => deleteM.mutate(deleteTarget.id)}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </AdminShell>
   );
 }

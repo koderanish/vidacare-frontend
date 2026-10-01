@@ -4,11 +4,21 @@ import toast from "react-hot-toast";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
+import { Switch } from "../../components/ui/Switch";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { LoadingState, ErrorState } from "../../components/ui/States";
 import { patientsApi, doctorsApi, caregiversApi } from "../../api/patients";
 import { adminApi } from "../../api/admin";
 import { apiErrorMessage } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+
+const PERMISSION_LABELS = {
+  canViewProfile: "View profile",
+  canViewVitals: "View vitals",
+  canViewJournal: "View journal",
+  canViewTreatment: "View treatment",
+  canReceiveAlerts: "Receive alerts",
+};
 
 export default function PatientCareTeamTab({ patientId }) {
   const { user } = useAuth();
@@ -16,6 +26,8 @@ export default function PatientCareTeamTab({ patientId }) {
   const qc = useQueryClient();
   const [pickingDoctor, setPickingDoctor] = useState(false);
   const [pickingCaregiver, setPickingCaregiver] = useState(false);
+  const [removingDoctor, setRemovingDoctor] = useState(false);
+  const [removingCaregiver, setRemovingCaregiver] = useState(false);
 
   const query = useQuery({ queryKey: ["care-team", patientId], queryFn: () => patientsApi.careTeam(patientId) });
   const doctorsQ = useQuery({
@@ -54,6 +66,35 @@ export default function PatientCareTeamTab({ patientId }) {
     onError: (err) => toast.error(apiErrorMessage(err)),
   });
 
+  const removeDoctorM = useMutation({
+    mutationFn: (doctorId) => adminApi.removeDoctor(patientId, doctorId),
+    onSuccess: () => {
+      toast.success("Doctor removed");
+      setRemovingDoctor(false);
+      invalidate();
+    },
+    onError: (err) => toast.error(apiErrorMessage(err)),
+  });
+
+  const removeCaregiverM = useMutation({
+    mutationFn: (caregiverId) => adminApi.removeCaregiver(patientId, caregiverId),
+    onSuccess: () => {
+      toast.success("Caregiver removed");
+      setRemovingCaregiver(false);
+      invalidate();
+    },
+    onError: (err) => toast.error(apiErrorMessage(err)),
+  });
+
+  const permissionsM = useMutation({
+    mutationFn: (body) => adminApi.updateCaregiverPermissions(patientId, body),
+    onSuccess: () => {
+      toast.success("Caregiver permissions updated");
+      invalidate();
+    },
+    onError: (err) => toast.error(apiErrorMessage(err)),
+  });
+
   if (query.isLoading) return <LoadingState label="Loading care team..." />;
   if (query.isError) return <ErrorState message={apiErrorMessage(query.error)} onRetry={query.refetch} />;
 
@@ -65,9 +106,16 @@ export default function PatientCareTeamTab({ patientId }) {
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-ink-900">Assigned doctor</h3>
           {isAdmin && (
-            <Button variant="outline" onClick={() => setPickingDoctor((v) => !v)}>
-              {doctor ? "Change doctor" : "Assign doctor"}
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setPickingDoctor((v) => !v)}>
+                {doctor ? "Change doctor" : "Assign doctor"}
+              </Button>
+              {doctor && (
+                <Button variant="danger" onClick={() => setRemovingDoctor(true)}>
+                  Remove
+                </Button>
+              )}
+            </div>
           )}
         </div>
         {doctor ? (
@@ -113,9 +161,16 @@ export default function PatientCareTeamTab({ patientId }) {
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-ink-900">Assigned caregiver</h3>
           {isAdmin && (
-            <Button variant="outline" onClick={() => setPickingCaregiver((v) => !v)}>
-              {caregiver ? "Change caregiver" : "Assign caregiver"}
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setPickingCaregiver((v) => !v)}>
+                {caregiver ? "Change caregiver" : "Assign caregiver"}
+              </Button>
+              {caregiver && (
+                <Button variant="danger" onClick={() => setRemovingCaregiver(true)}>
+                  Remove
+                </Button>
+              )}
+            </div>
           )}
         </div>
         {caregiver ? (
@@ -124,11 +179,21 @@ export default function PatientCareTeamTab({ patientId }) {
             <p className="text-sm text-ink-500">{caregiver.user.caregiverProfile?.caregiverType?.replace("_", " ")}</p>
             <p className="text-sm text-ink-500">{caregiver.user.email}</p>
             <p className="mt-1 text-xs text-ink-400">Assigned {new Date(caregiver.assignedAt).toLocaleDateString()}</p>
-            <div className="mt-2 flex flex-wrap gap-1">
+            <div className="mt-3 space-y-2">
               {Object.entries(caregiver.permissions).map(([k, v]) => (
-                <Badge key={k} tone={v ? "teal" : "neutral"}>
-                  {k.replace("can", "").replace(/([A-Z])/g, " $1").trim()}: {v ? "On" : "Off"}
-                </Badge>
+                <div key={k} className="flex items-center justify-between text-sm">
+                  <span className="text-ink-700">{PERMISSION_LABELS[k] || k}</span>
+                  {isAdmin ? (
+                    <Switch
+                      checked={v}
+                      disabled={permissionsM.isPending}
+                      label={PERMISSION_LABELS[k] || k}
+                      onChange={(next) => permissionsM.mutate({ [k]: next })}
+                    />
+                  ) : (
+                    <Badge tone={v ? "teal" : "neutral"}>{v ? "On" : "Off"}</Badge>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -162,6 +227,27 @@ export default function PatientCareTeamTab({ patientId }) {
           </div>
         )}
       </Card>
+
+      <ConfirmDialog
+        open={removingDoctor}
+        title="Remove assigned doctor?"
+        description={doctor ? `${doctor.user.fullName} will no longer have access to this patient's records.` : ""}
+        confirmLabel="Remove"
+        danger
+        loading={removeDoctorM.isPending}
+        onConfirm={() => removeDoctorM.mutate(doctor.user.id)}
+        onCancel={() => setRemovingDoctor(false)}
+      />
+      <ConfirmDialog
+        open={removingCaregiver}
+        title="Remove assigned caregiver?"
+        description={caregiver ? `${caregiver.user.fullName} will no longer have access to this patient's records.` : ""}
+        confirmLabel="Remove"
+        danger
+        loading={removeCaregiverM.isPending}
+        onConfirm={() => removeCaregiverM.mutate(caregiver.user.id)}
+        onCancel={() => setRemovingCaregiver(false)}
+      />
     </div>
   );
 }
