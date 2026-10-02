@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Nav } from "./components/Nav";
 import { Footer } from "./components/Footer";
+import { Cursor } from "./components/Cursor";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Services from "./pages/Services";
@@ -20,7 +21,8 @@ export default function SiteApp() {
   useEffect(() => startSmoothScroll(), []);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-site-paper">
+      <Cursor />
       <ScrollToTop />
       <Nav />
       <main>

@@ -1,32 +1,27 @@
-export function SectionHeading({ eyebrow, title, children, light = false, center = true }) {
+import { Lines } from "./Lines";
+
+export function Eyebrow({ children, light = false }) {
   return (
-    <div className={`mb-12 max-w-2xl ${center ? "mx-auto text-center" : ""}`}>
-      {eyebrow && (
-        <p data-reveal className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-vida-500">
-          {eyebrow}
-        </p>
-      )}
-      <h2 data-reveal className={`text-3xl font-bold tracking-tight [text-wrap:balance] md:text-4xl ${light ? "text-white" : "text-vida-deep"}`}>
-        {title}
-      </h2>
-      {children && (
-        <p data-reveal className={`mt-4 text-base leading-relaxed [text-wrap:pretty] ${light ? "text-white/70" : "text-ink-500"}`}>
-          {children}
-        </p>
-      )}
-    </div>
+    <p data-reveal className={`font-label text-xs uppercase tracking-[0.25em] ${light ? "text-vida-300" : "text-vida-600"}`}>
+      {children}
+    </p>
   );
 }
 
-export function PageHero({ eyebrow, title, children }) {
+export function PageHero({ eyebrow, lines, children }) {
   return (
-    <section className="relative overflow-hidden bg-vida-deep pb-20 pt-32 text-white">
-      <div className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-vida-400/20 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 -left-24 h-80 w-80 rounded-full bg-teal-500/20 blur-3xl" />
-      <div className="relative mx-auto max-w-4xl px-5 text-center">
-        <p data-reveal className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-vida-300">{eyebrow}</p>
-        <h1 data-reveal className="text-4xl font-bold tracking-tight [text-wrap:balance] md:text-5xl">{title}</h1>
-        <p data-reveal className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-white/70 [text-wrap:pretty]">{children}</p>
+    <section className="site-noise relative overflow-hidden bg-site-ink px-5 pb-20 pt-40 text-white md:pb-28 md:pt-52">
+      <div className="site-grid pointer-events-none absolute inset-0" />
+      <div className="pointer-events-none absolute -right-40 -top-40 h-[34rem] w-[34rem] rounded-full bg-vida-500/25 blur-[120px]" />
+      <div className="relative mx-auto max-w-7xl">
+        <Eyebrow light>{eyebrow}</Eyebrow>
+        <Lines
+          lines={lines}
+          className="mt-6 font-display text-[clamp(3rem,10vw,9.5rem)] font-bold leading-[0.92] tracking-[-0.045em]"
+        />
+        <p data-reveal className="mt-10 max-w-xl text-lg leading-relaxed text-white/65 [text-wrap:pretty]">
+          {children}
+        </p>
       </div>
     </section>
   );

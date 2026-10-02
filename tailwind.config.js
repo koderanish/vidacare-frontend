@@ -13,6 +13,7 @@ export default {
           50: "#f0fdf4", 100: "#dcfce7", 200: "#bbf7d0", 300: "#4ade80", 400: "#22c55e",
           500: "#16a34a", 600: "#15803d", 700: "#166534", deep: "#062b26", night: "#04201c",
         },
+        site: { ink: "#04140f", paper: "#f1f5ee", mist: "#e2eadf" },
         ink: { 900: "#0f2027", 700: "#25414c", 500: "#54707a", 300: "#93a9b0" },
         // Exact tokens confirmed from literal oklch() values in the Flowstep
         // reference JSX (ui/source/*.jsx) rather than approximated - this is
@@ -30,6 +31,10 @@ export default {
         foreground: "oklch(0.141 0.005 285.823)",
         "muted-foreground": "oklch(0.552 0.016 285.938)",
         destructive: "oklch(0.577 0.245 27.325)",
+      },
+      fontFamily: {
+        display: ["\"Bricolage Grotesque\"", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        label: ["\"JetBrains Mono\"", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       boxShadow: {
         card: "0 1px 2px rgba(15, 32, 39, 0.04), 0 4px 16px rgba(15, 32, 39, 0.06)",
