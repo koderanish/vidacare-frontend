@@ -1,4 +1,5 @@
 import axios from "axios";
+import { ADMIN_BASE } from "../adminBase";
 
 // Same mobile backend. BASE must include the `/api` prefix, e.g.
 //   local:      http://localhost:3000/api
@@ -63,7 +64,7 @@ client.interceptors.response.use(
     const url = error.config?.url || "";
     if (status === 401 && !url.includes("/auth/")) {
       setStoredAuth(null);
-      if (window.location.pathname !== "/login") window.location.href = "/login";
+      if (!window.location.pathname.endsWith("/login")) window.location.href = ADMIN_BASE + "/login";
     }
     return Promise.reject(error);
   }

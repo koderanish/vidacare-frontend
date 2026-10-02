@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ADMIN_BASE } from "../adminBase";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -186,7 +187,7 @@ export default function UserDetails() {
             </div>
             {user.role === "patient" && (
               <p className="mt-3 text-xs text-ink-400">
-                Full record: <a className="text-teal-700 hover:underline" href={`/patients/${user.id}`}>open patient view →</a>
+                Full record: <a className="text-teal-700 hover:underline" href={`${ADMIN_BASE}/patients/${user.id}`}>open patient view →</a>
               </p>
             )}
           </Card>
