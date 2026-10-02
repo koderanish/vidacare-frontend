@@ -13,6 +13,8 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false, staleTime: 15000 } },
 });
 
+if (isAdminPath(window.location.pathname)) document.title = "VidaCare Admin";
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
