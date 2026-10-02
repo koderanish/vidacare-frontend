@@ -6,16 +6,19 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Services from "./pages/Services";
 import Contact from "./pages/Contact";
+import { scrollToTop, startSmoothScroll } from "./smoothScroll";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
-    window.scrollTo(0, 0);
+    scrollToTop();
   }, [pathname]);
   return null;
 }
 
 export default function SiteApp() {
+  useEffect(() => startSmoothScroll(), []);
+
   return (
     <div className="min-h-screen bg-white">
       <ScrollToTop />
