@@ -2,6 +2,10 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { LoadingState } from "../components/ui/States";
 
+function normRole(role) {
+  return String(role || "").toLowerCase();
+}
+
 export function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
   const location = useLocation();
@@ -16,12 +20,8 @@ export function ProtectedRoute({ children, roles }) {
 
   if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
 
-  if (user.status !== "ACTIVE") {
+  if (roles && !roles.map(normRole).includes(normRole(user.role))) {
     return <Navigate to="/pending" replace />;
-  }
-
-  if (roles && !roles.includes(user.role)) {
-    return <Navigate to="/" replace />;
   }
 
   return children;

@@ -2,252 +2,144 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { Card } from "../../components/ui/Card";
-import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
-import { Switch } from "../../components/ui/Switch";
-import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
-import { LoadingState, ErrorState } from "../../components/ui/States";
-import { patientsApi, doctorsApi, caregiversApi } from "../../api/patients";
-import { adminApi } from "../../api/admin";
+import { LoadingState, ErrorState, EmptyState } from "../../components/ui/States";
+import { adminApi, fullName } from "../../api/admin";
 import { apiErrorMessage } from "../../api/client";
-import { useAuth } from "../../context/AuthContext";
 
-const PERMISSION_LABELS = {
-  canViewProfile: "View profile",
-  canViewVitals: "View vitals",
-  canViewJournal: "View journal",
-  canViewTreatment: "View treatment",
-  canReceiveAlerts: "Receive alerts",
-};
-
-export default function PatientCareTeamTab({ patientId }) {
-  const { user } = useAuth();
-  const isAdmin = user?.role === "ADMIN";
+// Doctor <-> patient links on the shared backend:
+//   GET    /api/admin/doctor-links?patientId= (current doctors)
+//   GET    /api/admin/doctor-links?doctorId=  (that doctor's patients)
+//   POST   /api/admin/doctor-links { doctorId, patientId }
+//   DELETE /api/admin/doctor-links { doctorId, patientId }
+// Caregiver assignment has no backend endpoint — surfaced as read-only note.
+export default function PatientCareTeamTab({ patientId, user }) {
   const qc = useQueryClient();
-  const [pickingDoctor, setPickingDoctor] = useState(false);
-  const [pickingCaregiver, setPickingCaregiver] = useState(false);
-  const [removingDoctor, setRemovingDoctor] = useState(false);
-  const [removingCaregiver, setRemovingCaregiver] = useState(false);
+  const [doctorSearch, setDoctorSearch] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
 
-  const query = useQuery({ queryKey: ["care-team", patientId], queryFn: () => patientsApi.careTeam(patientId) });
+  const linksQ = useQuery({
+    queryKey: ["admin", "doctor-links", "patient", patientId],
+    queryFn: () => adminApi.patientDoctors(patientId),
+  });
+
   const doctorsQ = useQuery({
-    queryKey: ["doctors", "active"],
-    queryFn: () => doctorsApi.list({ status: "ACTIVE", limit: 50 }),
-    enabled: pickingDoctor,
-  });
-  const caregiversQ = useQuery({
-    queryKey: ["caregivers", "active"],
-    queryFn: () => caregiversApi.list({ status: "ACTIVE", limit: 50 }),
-    enabled: pickingCaregiver,
+    queryKey: ["admin", "doctors", "search", submittedSearch],
+    queryFn: () =>
+      adminApi.listUsers({ search: submittedSearch || undefined, role: "doctor", page: 1, limit: 20 }),
+    enabled: submittedSearch !== "",
   });
 
-  const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ["care-team", patientId] });
-    qc.invalidateQueries({ queryKey: ["patients"] });
-  };
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "doctor-links", "patient", patientId] });
 
-  const assignDoctorM = useMutation({
-    mutationFn: (doctorId) => adminApi.assignDoctor(patientId, doctorId),
+  const linkM = useMutation({
+    mutationFn: ({ doctorId }) => adminApi.linkDoctor(doctorId, Number(patientId)),
     onSuccess: () => {
-      toast.success("Doctor assignment updated");
-      setPickingDoctor(false);
+      toast.success("Doctor linked to patient");
       invalidate();
     },
     onError: (err) => toast.error(apiErrorMessage(err)),
   });
 
-  const assignCaregiverM = useMutation({
-    mutationFn: (caregiverId) => adminApi.assignCaregiver(patientId, caregiverId),
+  const unlinkM = useMutation({
+    mutationFn: ({ doctorId }) => adminApi.unlinkDoctor(doctorId, Number(patientId)),
     onSuccess: () => {
-      toast.success("Caregiver assignment updated");
-      setPickingCaregiver(false);
+      toast.success("Link removed");
       invalidate();
     },
     onError: (err) => toast.error(apiErrorMessage(err)),
   });
 
-  const removeDoctorM = useMutation({
-    mutationFn: (doctorId) => adminApi.removeDoctor(patientId, doctorId),
-    onSuccess: () => {
-      toast.success("Doctor removed");
-      setRemovingDoctor(false);
-      invalidate();
-    },
-    onError: (err) => toast.error(apiErrorMessage(err)),
-  });
-
-  const removeCaregiverM = useMutation({
-    mutationFn: (caregiverId) => adminApi.removeCaregiver(patientId, caregiverId),
-    onSuccess: () => {
-      toast.success("Caregiver removed");
-      setRemovingCaregiver(false);
-      invalidate();
-    },
-    onError: (err) => toast.error(apiErrorMessage(err)),
-  });
-
-  const permissionsM = useMutation({
-    mutationFn: (body) => adminApi.updateCaregiverPermissions(patientId, body),
-    onSuccess: () => {
-      toast.success("Caregiver permissions updated");
-      invalidate();
-    },
-    onError: (err) => toast.error(apiErrorMessage(err)),
-  });
-
-  if (query.isLoading) return <LoadingState label="Loading care team..." />;
-  if (query.isError) return <ErrorState message={apiErrorMessage(query.error)} onRetry={query.refetch} />;
-
-  const { doctor, caregiver } = query.data;
+  const doctorOptions = doctorsQ.data?.users || [];
+  const linkedIds = new Set((linksQ.data || []).map((d) => d.id));
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <Card>
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-ink-900">Assigned doctor</h3>
-          {isAdmin && (
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setPickingDoctor((v) => !v)}>
-                {doctor ? "Change doctor" : "Assign doctor"}
-              </Button>
-              {doctor && (
-                <Button variant="danger" onClick={() => setRemovingDoctor(true)}>
-                  Remove
+        <h3 className="mb-1 text-sm font-semibold text-ink-900">Linked doctors</h3>
+        <p className="mb-3 text-xs text-ink-500">
+          Patient: {user ? fullName(user) : `#${patientId}`}
+        </p>
+        {linksQ.isLoading && <LoadingState label="Loading linked doctors..." />}
+        {linksQ.isError && <ErrorState message={apiErrorMessage(linksQ.error)} onRetry={linksQ.refetch} />}
+        {linksQ.data && linksQ.data.length === 0 && <EmptyState title="No doctor linked yet" />}
+        {linksQ.data && linksQ.data.length > 0 && (
+          <ul className="divide-y divide-ink-900/5">
+            {linksQ.data.map((d) => (
+              <li key={d.id} className="flex items-center justify-between py-2 text-sm">
+                <div>
+                  <p className="font-medium text-ink-900">{d.name}</p>
+                  <p className="text-xs text-ink-500">{d.email}{d.mrn ? ` · ${d.mrn}` : ""}</p>
+                </div>
+                <Button
+                  variant="danger"
+                  loading={unlinkM.isPending && unlinkM.variables?.doctorId === d.id}
+                  onClick={() => unlinkM.mutate({ doctorId: d.id })}
+                >
+                  Unlink
                 </Button>
-              )}
-            </div>
-          )}
-        </div>
-        {doctor ? (
-          <div>
-            <p className="font-medium text-ink-900">{doctor.user.fullName}</p>
-            <p className="text-sm text-ink-500">{doctor.user.doctorProfile?.specialization}</p>
-            <p className="text-sm text-ink-500">{doctor.user.email}</p>
-            <p className="mt-1 text-xs text-ink-400">Assigned {new Date(doctor.assignedAt).toLocaleDateString()}</p>
-            <Badge tone="green" className="mt-2">Active</Badge>
-          </div>
-        ) : (
-          <p className="text-sm text-ink-400">No doctor assigned</p>
-        )}
-
-        {pickingDoctor && (
-          <div className="mt-4 rounded-lg border border-ink-900/10 p-3">
-            {doctorsQ.isLoading ? (
-              <LoadingState label="Loading doctors..." />
-            ) : (
-              <ul className="divide-y divide-ink-900/5">
-                {doctorsQ.data?.items.map((d) => (
-                  <li key={d.id} className="flex items-center justify-between py-2 text-sm">
-                    <div>
-                      <p className="font-medium text-ink-900">{d.fullName}</p>
-                      <p className="text-xs text-ink-500">{d.doctorProfile?.specialization}</p>
-                    </div>
-                    <Button
-                      variant="secondary"
-                      loading={assignDoctorM.isPending && assignDoctorM.variables === d.id}
-                      onClick={() => assignDoctorM.mutate(d.id)}
-                    >
-                      Select
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+              </li>
+            ))}
+          </ul>
         )}
       </Card>
 
       <Card>
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-ink-900">Assigned caregiver</h3>
-          {isAdmin && (
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setPickingCaregiver((v) => !v)}>
-                {caregiver ? "Change caregiver" : "Assign caregiver"}
-              </Button>
-              {caregiver && (
-                <Button variant="danger" onClick={() => setRemovingCaregiver(true)}>
-                  Remove
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-        {caregiver ? (
-          <div>
-            <p className="font-medium text-ink-900">{caregiver.user.fullName}</p>
-            <p className="text-sm text-ink-500">{caregiver.user.caregiverProfile?.caregiverType?.replace("_", " ")}</p>
-            <p className="text-sm text-ink-500">{caregiver.user.email}</p>
-            <p className="mt-1 text-xs text-ink-400">Assigned {new Date(caregiver.assignedAt).toLocaleDateString()}</p>
-            <div className="mt-3 space-y-2">
-              {Object.entries(caregiver.permissions).map(([k, v]) => (
-                <div key={k} className="flex items-center justify-between text-sm">
-                  <span className="text-ink-700">{PERMISSION_LABELS[k] || k}</span>
-                  {isAdmin ? (
-                    <Switch
-                      checked={v}
-                      disabled={permissionsM.isPending}
-                      label={PERMISSION_LABELS[k] || k}
-                      onChange={(next) => permissionsM.mutate({ [k]: next })}
-                    />
-                  ) : (
-                    <Badge tone={v ? "teal" : "neutral"}>{v ? "On" : "Off"}</Badge>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <p className="text-sm text-ink-400">No caregiver assigned</p>
-        )}
+        <h3 className="mb-1 text-sm font-semibold text-ink-900">Link a doctor</h3>
+        <p className="mb-3 text-xs text-ink-500">Search doctors, then link.</p>
+        <form
+          className="flex gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setSubmittedSearch(doctorSearch);
+          }}
+        >
+          <input
+            value={doctorSearch}
+            onChange={(e) => setDoctorSearch(e.target.value)}
+            placeholder="Search doctors by name or email"
+            className="flex-1 rounded-lg border border-ink-900/10 px-3 py-2 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+          />
+          <Button variant="secondary" type="submit">Search</Button>
+        </form>
 
-        {pickingCaregiver && (
-          <div className="mt-4 rounded-lg border border-ink-900/10 p-3">
-            {caregiversQ.isLoading ? (
-              <LoadingState label="Loading caregivers..." />
-            ) : (
-              <ul className="divide-y divide-ink-900/5">
-                {caregiversQ.data?.items.map((c) => (
-                  <li key={c.id} className="flex items-center justify-between py-2 text-sm">
-                    <div>
-                      <p className="font-medium text-ink-900">{c.fullName}</p>
-                      <p className="text-xs text-ink-500">{c.caregiverProfile?.caregiverType?.replace("_", " ")}</p>
-                    </div>
+        <div className="mt-3">
+          {submittedSearch !== "" && doctorsQ.isLoading && <LoadingState label="Loading doctors..." />}
+          {submittedSearch !== "" && doctorsQ.isError && <ErrorState message={apiErrorMessage(doctorsQ.error)} onRetry={doctorsQ.refetch} />}
+          {submittedSearch !== "" && doctorsQ.data && doctorOptions.length === 0 && <p className="text-sm text-ink-400">No doctors found.</p>}
+          {doctorOptions.length > 0 && (
+            <ul className="divide-y divide-ink-900/5">
+              {doctorOptions.map((d) => (
+                <li key={d.id} className="flex items-center justify-between py-2 text-sm">
+                  <div>
+                    <p className="font-medium text-ink-900">{fullName(d)}</p>
+                    <p className="text-xs text-ink-500">{d.email}{d.mrn ? ` · ${d.mrn}` : ""}</p>
+                  </div>
+                  {linkedIds.has(d.id) ? (
+                    <span className="text-xs text-teal-700">Linked ✓</span>
+                  ) : (
                     <Button
                       variant="secondary"
-                      loading={assignCaregiverM.isPending && assignCaregiverM.variables === c.id}
-                      onClick={() => assignCaregiverM.mutate(c.id)}
+                      loading={linkM.isPending && linkM.variables?.doctorId === d.id}
+                      onClick={() => linkM.mutate({ doctorId: d.id })}
                     >
-                      Select
+                      Link
                     </Button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </Card>
 
-      <ConfirmDialog
-        open={removingDoctor}
-        title="Remove assigned doctor?"
-        description={doctor ? `${doctor.user.fullName} will no longer have access to this patient's records.` : ""}
-        confirmLabel="Remove"
-        danger
-        loading={removeDoctorM.isPending}
-        onConfirm={() => removeDoctorM.mutate(doctor.user.id)}
-        onCancel={() => setRemovingDoctor(false)}
-      />
-      <ConfirmDialog
-        open={removingCaregiver}
-        title="Remove assigned caregiver?"
-        description={caregiver ? `${caregiver.user.fullName} will no longer have access to this patient's records.` : ""}
-        confirmLabel="Remove"
-        danger
-        loading={removeCaregiverM.isPending}
-        onConfirm={() => removeCaregiverM.mutate(caregiver.user.id)}
-        onCancel={() => setRemovingCaregiver(false)}
-      />
+      <Card>
+        <h3 className="mb-1 text-sm font-semibold text-ink-900">Caregivers</h3>
+        <p className="text-sm text-ink-500">
+          Caregiver assignment has no endpoint on the shared backend yet — caregivers are managed
+          as users with role <code>caregiver</code> under Users.
+        </p>
+      </Card>
     </div>
   );
 }

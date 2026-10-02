@@ -5,11 +5,10 @@ import { vitalsApi } from "../../api/vitals";
 import { apiErrorMessage } from "../../api/client";
 
 const LABELS = {
-  BLOOD_PRESSURE: "Blood Pressure",
-  HEART_RATE: "Heart Rate",
-  SPO2: "SpO2",
-  BLOOD_SUGAR: "Blood Sugar",
-  WEIGHT: "Weight",
+  blood_pressure: "Blood Pressure",
+  heart_rate: "Heart Rate",
+  spo2: "SpO2",
+  weight: "Weight",
 };
 
 export default function PatientOverviewTab({ patientId }) {
@@ -18,10 +17,10 @@ export default function PatientOverviewTab({ patientId }) {
   if (query.isLoading) return <LoadingState label="Loading latest vitals..." />;
   if (query.isError) return <ErrorState message={apiErrorMessage(query.error)} onRetry={query.refetch} />;
 
-  const latest = query.data;
+  const latest = query.data || {};
 
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
       {Object.entries(LABELS).map(([type, label]) => {
         const v = latest[type];
         return (
@@ -30,12 +29,10 @@ export default function PatientOverviewTab({ patientId }) {
             {v ? (
               <>
                 <p className="mt-1 text-xl font-semibold text-ink-900">
-                  {v.valuePrimary}
-                  {v.valueSecondary ? `/${v.valueSecondary}` : ""}{" "}
-                  <span className="text-sm font-normal text-ink-500">{v.unit}</span>
+                  {v.value} <span className="text-sm font-normal text-ink-500">{v.unit}</span>
                 </p>
-                <p className="mt-1 text-xs text-ink-400">{new Date(v.recordedAt).toLocaleString()}</p>
-                <p className="text-xs text-ink-400">{v.source === "DEMO_DEVICE" ? "Demo device data" : "Manual entry"}</p>
+                <p className="mt-1 text-xs text-ink-400">{v.measuredAt ? new Date(v.measuredAt).toLocaleString() : ""}</p>
+                {v.note && <p className="text-xs text-ink-400">{v.note}</p>}
               </>
             ) : (
               <p className="mt-1 text-sm text-ink-400">No reading</p>

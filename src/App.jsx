@@ -19,7 +19,7 @@ import Settings from "./pages/Settings";
 function LoginGate() {
   const { user, loading } = useAuth();
   if (loading) return <BrandLoaderOverlay label="Loading..." />;
-  if (user?.status === "ACTIVE") return <Navigate to="/" replace />;
+  if (user?.role === "admin") return <Navigate to="/" replace />;
   if (user) return <Navigate to="/pending" replace />;
   return <Login />;
 }
@@ -37,16 +37,16 @@ export default function App() {
         }
       />
 
-      <Route path="/" element={<ProtectedRoute roles={["ADMIN"]}><DashboardOverview /></ProtectedRoute>} />
-      <Route path="/users" element={<ProtectedRoute roles={["ADMIN"]}><UserManagement /></ProtectedRoute>} />
-      <Route path="/users/:id" element={<ProtectedRoute roles={["ADMIN"]}><UserDetails /></ProtectedRoute>} />
-      <Route path="/verifications" element={<ProtectedRoute roles={["ADMIN"]}><Verifications /></ProtectedRoute>} />
-      <Route path="/patients" element={<ProtectedRoute roles={["ADMIN"]}><PatientManagement /></ProtectedRoute>} />
-      <Route path="/patients/:id" element={<ProtectedRoute roles={["ADMIN"]}><PatientDetails /></ProtectedRoute>} />
-      <Route path="/alerts" element={<ProtectedRoute roles={["ADMIN"]}><Alerts /></ProtectedRoute>} />
-      <Route path="/resources" element={<ProtectedRoute roles={["ADMIN"]}><Resources /></ProtectedRoute>} />
-      <Route path="/notifications" element={<ProtectedRoute roles={["ADMIN"]}><Notifications /></ProtectedRoute>} />
-      <Route path="/settings" element={<ProtectedRoute roles={["ADMIN"]}><Settings /></ProtectedRoute>} />
+      <Route path="/" element={<ProtectedRoute roles={["admin"]}><DashboardOverview /></ProtectedRoute>} />
+      <Route path="/users" element={<ProtectedRoute roles={["admin"]}><UserManagement /></ProtectedRoute>} />
+      <Route path="/users/:id" element={<ProtectedRoute roles={["admin"]}><UserDetails /></ProtectedRoute>} />
+      <Route path="/verifications" element={<ProtectedRoute roles={["admin"]}><Verifications /></ProtectedRoute>} />
+      <Route path="/patients" element={<ProtectedRoute roles={["admin"]}><PatientManagement /></ProtectedRoute>} />
+      <Route path="/patients/:id" element={<ProtectedRoute roles={["admin"]}><PatientDetails /></ProtectedRoute>} />
+      <Route path="/alerts" element={<ProtectedRoute roles={["admin"]}><Alerts /></ProtectedRoute>} />
+      <Route path="/resources" element={<ProtectedRoute roles={["admin"]}><Resources /></ProtectedRoute>} />
+      <Route path="/notifications" element={<ProtectedRoute roles={["admin"]}><Notifications /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute roles={["admin"]}><Settings /></ProtectedRoute>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -3,30 +3,16 @@ import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 
-const COPY = {
-  PENDING: {
-    title: "Your account is pending review",
-    body: "An administrator needs to verify your account before you can access VidaCare. We'll notify you once that happens.",
-  },
-  REJECTED: {
-    title: "Your application was not approved",
-    body: "Contact your VidaCare administrator for details on your application status.",
-  },
-  SUSPENDED: {
-    title: "Your account is suspended",
-    body: "Contact your VidaCare administrator to restore access.",
-  },
-};
-
 export default function PendingStatus() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const copy = COPY[user?.status] || COPY.PENDING;
 
   async function handleLogout() {
     await logout();
     navigate("/login", { replace: true });
   }
+
+  const isAdmin = user?.role === "admin";
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f7fafa] px-4">
@@ -34,8 +20,14 @@ export default function PendingStatus() {
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-700">
           ⏳
         </div>
-        <h1 className="text-lg font-semibold text-ink-900">{copy.title}</h1>
-        <p className="mt-2 text-sm text-ink-500">{copy.body}</p>
+        <h1 className="text-lg font-semibold text-ink-900">
+          {isAdmin ? "Signed in" : "Admin access required"}
+        </h1>
+        <p className="mt-2 text-sm text-ink-500">
+          {isAdmin
+            ? "Your admin session is active."
+            : `Signed in as ${user?.email || "a non-admin account"}. This portal is for VidaCare administrators only (role is granted manually in the database, never via signup).`}
+        </p>
         <Button variant="secondary" className="mt-6" onClick={handleLogout}>
           Log out
         </Button>

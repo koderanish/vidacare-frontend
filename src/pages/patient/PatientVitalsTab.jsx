@@ -6,16 +6,16 @@ import { vitalsApi } from "../../api/vitals";
 import { apiErrorMessage } from "../../api/client";
 
 const CHARTS = [
-  { type: "BLOOD_PRESSURE", label: "Blood pressure", color: "#23827c", color2: "#7aa7ff" },
-  { type: "HEART_RATE", label: "Heart rate", color: "#2fa39a" },
-  { type: "SPO2", label: "SpO2", color: "#4c9be8" },
-  { type: "BLOOD_SUGAR", label: "Blood sugar", color: "#d98a3d" },
+  { type: "blood_pressure", label: "Blood pressure", color: "#23827c", color2: "#7aa7ff" },
+  { type: "heart_rate", label: "Heart rate", color: "#2fa39a" },
+  { type: "spo2", label: "SpO2", color: "#4c9be8" },
+  { type: "weight", label: "Weight", color: "#d98a3d" },
 ];
 
 export default function PatientVitalsTab({ patientId }) {
   const query = useQuery({
     queryKey: ["vitals", "trends", patientId],
-    queryFn: () => vitalsApi.trends(patientId, { days: 14 }),
+    queryFn: () => vitalsApi.trends(patientId),
   });
 
   if (query.isLoading) return <LoadingState label="Loading vitals trends..." />;
@@ -28,19 +28,19 @@ export default function PatientVitalsTab({ patientId }) {
         const points = query.data.filter((p) => p.type === chart.type);
         return (
           <Card key={chart.type}>
-            <h3 className="mb-3 text-sm font-semibold text-ink-900">{chart.label} — last 14 days</h3>
+            <h3 className="mb-3 text-sm font-semibold text-ink-900">{chart.label}</h3>
             {points.length === 0 ? (
               <EmptyState title="No readings in range" />
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={points}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#eef2f2" />
-                  <XAxis dataKey="date" tickFormatter={(d) => d.slice(5)} fontSize={11} stroke="#93a9b0" />
+                  <XAxis dataKey="date" tickFormatter={(d) => String(d).slice(5)} fontSize={11} stroke="#93a9b0" />
                   <YAxis fontSize={11} stroke="#93a9b0" domain={["auto", "auto"]} />
                   <Tooltip />
-                  {chart.type === "BLOOD_PRESSURE" && <Legend wrapperStyle={{ fontSize: 12 }} />}
-                  <Line type="monotone" dataKey="valuePrimary" name={chart.type === "BLOOD_PRESSURE" ? "Systolic" : chart.label} stroke={chart.color} strokeWidth={2} dot={false} />
-                  {chart.type === "BLOOD_PRESSURE" && (
+                  {chart.type === "blood_pressure" && <Legend wrapperStyle={{ fontSize: 12 }} />}
+                  <Line type="monotone" dataKey="valuePrimary" name={chart.type === "blood_pressure" ? "Systolic" : chart.label} stroke={chart.color} strokeWidth={2} dot={false} />
+                  {chart.type === "blood_pressure" && (
                     <Line type="monotone" dataKey="valueSecondary" name="Diastolic" stroke={chart.color2} strokeWidth={2} strokeDasharray="4 3" dot={false} />
                   )}
                 </LineChart>

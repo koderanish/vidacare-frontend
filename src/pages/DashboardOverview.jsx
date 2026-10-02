@@ -9,8 +9,11 @@ import { adminApi } from "../api/admin";
 import { apiErrorMessage } from "../api/client";
 
 function timeAgo(dateStr) {
+  if (!dateStr) return "—";
   const diffMs = Date.now() - new Date(dateStr).getTime();
+  if (!Number.isFinite(diffMs)) return "—";
   const mins = Math.round(diffMs / 60000);
+  if (mins < 1) return "just now";
   if (mins < 60) return `${mins} min ago`;
   const hrs = Math.round(mins / 60);
   if (hrs < 24) return `${hrs} hr${hrs > 1 ? "s" : ""} ago`;
@@ -22,45 +25,43 @@ export default function DashboardOverview() {
   const activityChartQ = useQuery({ queryKey: ["admin", "chart", "activity"], queryFn: adminApi.patientActivityChart });
   const regChartQ = useQuery({ queryKey: ["admin", "chart", "registrations"], queryFn: adminApi.registrationChart });
   const recentQ = useQuery({ queryKey: ["admin", "recent-activity"], queryFn: adminApi.recentActivity });
+  const aiQ = useQuery({ queryKey: ["admin", "ai-usage"], queryFn: adminApi.aiUsage, refetchInterval: 60_000 });
 
   const s = statsQ.data;
 
   return (
     <AdminShell>
-      <Topbar title="Dashboard overview" subtitle="Operational snapshot for the VidaCare demo workspace." />
+      <Topbar title="Dashboard overview" subtitle="Live snapshot from the shared mobile backend." />
       <main className="flex-1 space-y-6 p-6">
-        <div className="rounded-lg border border-sky-100 bg-sky-50 px-4 py-2 text-xs text-sky-800">
-          DEMO DATA · This workspace contains sample records for product demonstration only.
-        </div>
-
         {statsQ.isLoading && <LoadingState label="Loading dashboard statistics..." />}
         {statsQ.isError && <ErrorState message={apiErrorMessage(statsQ.error)} onRetry={statsQ.refetch} />}
         {s && (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            <StatCard label="Total Patients" value={s.totalPatients} />
-            <StatCard label="Total Doctors" value={s.totalDoctors} />
-            <StatCard label="Total Caregivers" value={s.totalCaregivers} />
-            <StatCard
-              label="Pending Doctor Verifications"
-              value={s.pendingDoctorVerifications}
-              trend={s.pendingDoctorVerifications > 0 ? "Needs review" : "All clear"}
-              trendTone={s.pendingDoctorVerifications > 0 ? "amber" : "green"}
-            />
-            <StatCard
-              label="Pending Caregiver Verifications"
-              value={s.pendingCaregiverVerifications}
-              trend={s.pendingCaregiverVerifications > 0 ? "Needs review" : "All clear"}
-              trendTone={s.pendingCaregiverVerifications > 0 ? "amber" : "green"}
-            />
-            <StatCard
-              label="Active Alerts"
-              value={s.activeAlerts}
-              trend={s.activeAlerts > 0 ? `${s.activeAlerts} open` : "None open"}
-              trendTone={s.activeAlerts > 0 ? "amber" : "green"}
-            />
-            <StatCard label="Active Treatment Plans" value={s.activeTreatmentPlans} />
-            <StatCard label="New Users (30d)" value={s.newUsers} trend="Last 30 days" />
-          </div>
+          <>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+              <StatCard label="Total users" value={s.users?.total} />
+              <StatCard label="Patients" value={s.users?.patients} />
+              <StatCard label="Doctors" value={s.users?.doctors} />
+              <StatCard label="Caregivers" value={s.users?.caregivers} />
+              <StatCard label="Admins" value={s.users?.admins} />
+              <StatCard label="Verified emails" value={s.users?.verified} />
+              <StatCard label="New users (7d)" value={s.users?.new7d} trend="Last 7 days" />
+              <StatCard
+                label="AI prompts (24h)"
+                value={aiQ.data?.totals?.last24h ?? "—"}
+                trend={aiQ.data ? `${aiQ.data.totals.total} total` : undefined}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+              <StatCard label="Vital readings" value={s.content?.vitals} />
+              <StatCard label="Journal entries" value={s.content?.journal} />
+              <StatCard label="Reminders" value={s.content?.reminders} />
+              <StatCard label="Care plans" value={s.content?.plans} />
+              <StatCard label="Care messages" value={s.content?.messages} />
+              <StatCard label="AI messages" value={s.content?.aiMessages} />
+              <StatCard label="Appointments" value={s.content?.appointments} />
+              <StatCard label="Push tokens" value={s.tokens?.pushTokens} />
+            </div>
+          </>
         )}
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -76,8 +77,8 @@ export default function DashboardOverview() {
                 <LineChart data={activityChartQ.data || []}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#eef2f2" />
                   <XAxis
-                    dataKey="date"
-                    tickFormatter={(d) => d.slice(5)}
+                    dataKey="day"
+                    tickFormatter={(d) => String(d || "").slice(5)}
                     fontSize={12}
                     stroke="#93a9b0"
                   />
@@ -91,7 +92,7 @@ export default function DashboardOverview() {
 
           <Card>
             <h3 className="mb-1 text-sm font-semibold text-ink-900">User registration trend</h3>
-            <p className="mb-4 text-xs text-ink-500">New accounts per month, last 6 months</p>
+            <p className="mb-4 text-xs text-ink-500">New accounts per day, last 14 days</p>
             {regChartQ.isLoading ? (
               <LoadingState label="Loading chart..." />
             ) : regChartQ.isError ? (
@@ -100,7 +101,7 @@ export default function DashboardOverview() {
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={regChartQ.data || []}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#eef2f2" />
-                  <XAxis dataKey="label" fontSize={12} stroke="#93a9b0" />
+                  <XAxis dataKey="day" tickFormatter={(d) => String(d || "").slice(5)} fontSize={12} stroke="#93a9b0" />
                   <YAxis fontSize={12} stroke="#93a9b0" allowDecimals={false} />
                   <Tooltip />
                   <Line type="monotone" dataKey="count" stroke="#2fa39a" strokeWidth={2} dot name="New users" />
@@ -116,16 +117,15 @@ export default function DashboardOverview() {
           </div>
           {recentQ.isLoading && <LoadingState label="Loading activity..." />}
           {recentQ.isError && <ErrorState message={apiErrorMessage(recentQ.error)} onRetry={recentQ.refetch} />}
-          {recentQ.data && recentQ.data.length === 0 && <EmptyState title="No activity in this time range" />}
+          {recentQ.data && recentQ.data.length === 0 && <EmptyState title="No activity yet" />}
           {recentQ.data && recentQ.data.length > 0 && (
             <ul className="divide-y divide-ink-900/5">
-              {recentQ.data.map((item) => (
-                <li key={item.id} className="flex items-center justify-between py-3 text-sm">
+              {recentQ.data.map((item, i) => (
+                <li key={`${item.name}-${item.time}-${i}`} className="flex items-center justify-between py-3 text-sm">
                   <div>
-                    <p className="font-medium text-ink-900">{item.summary}</p>
-                    <p className="text-xs text-ink-500">{item.actor?.fullName || "System"}</p>
+                    <p className="font-medium text-ink-900">{item.name} — {item.text}</p>
                   </div>
-                  <span className="text-xs text-ink-400">{timeAgo(item.createdAt)}</span>
+                  <span className="text-xs text-ink-400">{timeAgo(item.time)}</span>
                 </li>
               ))}
             </ul>

@@ -11,6 +11,14 @@ const AuthContext = createContext(null);
 // `user` changes, which would otherwise unmount the overlay mid-transition.
 const LOGIN_TRANSITION_MS = 850;
 
+function displayName(user) {
+  if (!user) return "there";
+  const full = [user.firstName, user.lastName].filter(Boolean).join(" ").trim();
+  if (full) return full.split(" ")[0];
+  if (user.email) return user.email.split("@")[0];
+  return "there";
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,7 +26,7 @@ export function AuthProvider({ children }) {
 
   const bootstrap = useCallback(async () => {
     const stored = getStoredAuth();
-    if (!stored?.accessToken) {
+    if (!stored?.token) {
       setLoading(false);
       return;
     }
@@ -37,11 +45,13 @@ export function AuthProvider({ children }) {
   }, [bootstrap]);
 
   async function login(email, password) {
+    // Backend: { message, token, user: { id, email, firstName, lastName, role, emailVerified } }
     const data = await authApi.login({ email, password });
-    setStoredAuth({ accessToken: data.accessToken, refreshToken: data.refreshToken });
-    setTransitionLabel(
-      data.user.status === "ACTIVE" ? `Welcome back, ${data.user.fullName.split(" ")[0]}` : "Signing you in..."
-    );
+    if (data.user?.role !== "admin") {
+      throw new Error("This portal is for VidaCare administrators only.");
+    }
+    setStoredAuth({ token: data.token });
+    setTransitionLabel(`Welcome back, ${displayName(data.user)}`);
     setUser(data.user);
     await new Promise((resolve) => setTimeout(resolve, LOGIN_TRANSITION_MS));
     setTransitionLabel(null);
@@ -49,9 +59,8 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
-    const stored = getStoredAuth();
     try {
-      if (stored?.refreshToken) await authApi.logout(stored.refreshToken);
+      await authApi.logout();
     } catch {
       // best-effort; clear local state regardless
     }

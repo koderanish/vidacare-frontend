@@ -8,16 +8,15 @@ import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { LoadingState, ErrorState, EmptyState } from "../components/ui/States";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
-import { resourcesApi } from "../api/resources";
+import { adminApi } from "../api/admin";
 import { apiErrorMessage } from "../api/client";
 
-const CATEGORIES = ["HEART_HEALTH", "DIABETES", "MENTAL_WELLNESS", "NUTRITION", "EXERCISE", "MEDICATION", "GENERAL_HEALTH"];
-const STATUS_TONE = { PUBLISHED: "green", DRAFT: "neutral", UNPUBLISHED: "amber" };
+const CATEGORIES = ["general", "heart", "diabetes", "mental", "nutrition", "exercise", "medication"];
 
-const emptyForm = { title: "", category: "GENERAL_HEALTH", description: "", content: "", authorName: "VidaCare Education", status: "DRAFT" };
+const emptyForm = { title: "", category: "general", body: "", published: false };
 
 export default function Resources() {
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState("all");
   const [q, setQ] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -26,45 +25,36 @@ export default function Resources() {
   const qc = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["resources", { category, q }],
-    queryFn: () => resourcesApi.list({ category: category || undefined, q: q || undefined, limit: 20 }),
+    queryKey: ["admin", "resources", category, q],
+    queryFn: () => adminApi.listResources({ category, q: q || undefined, limit: 100 }),
   });
 
   const createM = useMutation({
-    mutationFn: resourcesApi.create,
+    mutationFn: (body) => adminApi.createResource(body),
     onSuccess: () => {
       toast.success("Resource created");
       closeForm();
-      qc.invalidateQueries({ queryKey: ["resources"] });
+      qc.invalidateQueries({ queryKey: ["admin", "resources"] });
     },
     onError: (err) => toast.error(apiErrorMessage(err)),
   });
 
   const updateM = useMutation({
-    mutationFn: ({ id, body }) => resourcesApi.update(id, body),
+    mutationFn: ({ id, body }) => adminApi.updateResource(id, body),
     onSuccess: () => {
       toast.success("Resource updated");
       closeForm();
-      qc.invalidateQueries({ queryKey: ["resources"] });
-    },
-    onError: (err) => toast.error(apiErrorMessage(err)),
-  });
-
-  const publishM = useMutation({
-    mutationFn: ({ id, publish }) => (publish ? resourcesApi.publish(id) : resourcesApi.unpublish(id)),
-    onSuccess: () => {
-      toast.success("Resource status updated");
-      qc.invalidateQueries({ queryKey: ["resources"] });
+      qc.invalidateQueries({ queryKey: ["admin", "resources"] });
     },
     onError: (err) => toast.error(apiErrorMessage(err)),
   });
 
   const deleteM = useMutation({
-    mutationFn: (id) => resourcesApi.remove(id),
+    mutationFn: (id) => adminApi.deleteResource(id),
     onSuccess: () => {
       toast.success("Resource deleted");
       setDeleteTarget(null);
-      qc.invalidateQueries({ queryKey: ["resources"] });
+      qc.invalidateQueries({ queryKey: ["admin", "resources"] });
     },
     onError: (err) => toast.error(apiErrorMessage(err)),
   });
@@ -77,29 +67,20 @@ export default function Resources() {
 
   function openEdit(r) {
     setEditingId(r.id);
-    setForm({
-      title: r.title,
-      category: r.category,
-      description: r.description,
-      content: r.content,
-      authorName: r.authorName,
-      status: r.status,
-    });
+    setForm({ title: r.title, category: r.category, body: r.content || r.description || "", published: !!r.isPublished });
     setFormOpen(true);
   }
+
+  const items = query.data?.resources || [];
 
   return (
     <AdminShell>
       <Topbar
         title="Resources"
-        subtitle="Manage educational content for the VidaCare demo workspace."
+        subtitle="Educational content served to the mobile app."
         actions={<Button onClick={() => setFormOpen(true)}>+ Create resource</Button>}
       />
       <main className="flex-1 space-y-4 p-6">
-        <div className="rounded-lg border border-sky-100 bg-sky-50 px-4 py-2 text-xs text-sky-800">
-          DEMO CONTENT · Resources are sample educational materials for prototype demonstration.
-        </div>
-
         <div className="flex flex-wrap gap-3">
           <input
             value={q}
@@ -108,28 +89,28 @@ export default function Resources() {
             className="rounded-lg border border-ink-900/10 px-3 py-2 text-sm"
           />
           <select value={category} onChange={(e) => setCategory(e.target.value)} className="rounded-lg border border-ink-900/10 px-3 py-2 text-sm">
-            <option value="">All categories</option>
+            <option value="all">All categories</option>
             {CATEGORIES.map((c) => (
-              <option key={c} value={c}>{c.replace("_", " ")}</option>
+              <option key={c} value={c}>{c}</option>
             ))}
           </select>
         </div>
 
         {query.isLoading && <LoadingState label="Loading resources..." />}
         {query.isError && <ErrorState message={apiErrorMessage(query.error)} onRetry={query.refetch} />}
-        {query.data && query.data.items.length === 0 && <EmptyState title="No resources match these filters" />}
+        {query.data && items.length === 0 && <EmptyState title="No resources match these filters" />}
 
-        {query.data && query.data.items.length > 0 && (
+        {items.length > 0 && (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {query.data.items.map((r) => (
+            {items.map((r) => (
               <Card key={r.id} className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <Badge tone="teal">{r.category.replace("_", " ")}</Badge>
-                  <Badge tone={STATUS_TONE[r.status]}>{r.status}</Badge>
+                  <Badge tone="teal">{r.category}</Badge>
+                  <Badge tone={r.isPublished ? "green" : "neutral"}>{r.isPublished ? "PUBLISHED" : "DRAFT"}</Badge>
                 </div>
                 <h3 className="font-semibold text-ink-900">{r.title}</h3>
-                <p className="line-clamp-2 text-sm text-ink-500">{r.description}</p>
-                <p className="text-xs text-ink-400">{r.authorName} · {new Date(r.createdAt).toLocaleDateString()}</p>
+                <p className="line-clamp-2 text-sm text-ink-500">{r.description || r.content}</p>
+                <p className="text-xs text-ink-400">{r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ""}</p>
                 <div className="mt-2 flex flex-wrap justify-end gap-2">
                   <Button variant="secondary" onClick={() => openEdit(r)}>
                     Edit
@@ -137,15 +118,12 @@ export default function Resources() {
                   <Button variant="danger" onClick={() => setDeleteTarget(r)}>
                     Delete
                   </Button>
-                  {r.status === "PUBLISHED" ? (
-                    <Button variant="outline" loading={publishM.isPending && publishM.variables?.id === r.id} onClick={() => publishM.mutate({ id: r.id, publish: false })}>
-                      Unpublish
-                    </Button>
-                  ) : (
-                    <Button loading={publishM.isPending && publishM.variables?.id === r.id} onClick={() => publishM.mutate({ id: r.id, publish: true })}>
-                      Publish
-                    </Button>
-                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => updateM.mutate({ id: r.id, body: { published: !r.isPublished } })}
+                  >
+                    {r.isPublished ? "Unpublish" : "Publish"}
+                  </Button>
                 </div>
               </Card>
             ))}
@@ -163,24 +141,22 @@ export default function Resources() {
               </Field>
               <Field label="Category">
                 <select className="input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-                  {CATEGORIES.map((c) => <option key={c} value={c}>{c.replace("_", " ")}</option>)}
+                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </Field>
-              <Field label="Description">
-                <textarea className="input" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              <Field label="Body">
+                <textarea className="input" rows={4} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} />
               </Field>
-              <Field label="Content">
-                <textarea className="input" rows={4} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} />
-              </Field>
-              <Field label="Author">
-                <input className="input" value={form.authorName} onChange={(e) => setForm({ ...form, authorName: e.target.value })} />
-              </Field>
+              <label className="flex items-center gap-2 text-sm text-ink-700">
+                <input type="checkbox" checked={!!form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} />
+                Published
+              </label>
             </div>
             <div className="mt-5 flex justify-end gap-2">
               <Button variant="secondary" onClick={closeForm}>Cancel</Button>
               <Button
                 loading={editingId ? updateM.isPending : createM.isPending}
-                disabled={!form.title || !form.description || !form.content}
+                disabled={!form.title.trim() || !form.body.trim()}
                 onClick={() =>
                   editingId ? updateM.mutate({ id: editingId, body: form }) : createM.mutate(form)
                 }

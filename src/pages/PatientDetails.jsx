@@ -5,7 +5,7 @@ import { AdminShell } from "../components/layout/AdminShell";
 import { Topbar } from "../components/layout/Topbar";
 import { Badge } from "../components/ui/Badge";
 import { LoadingState, ErrorState } from "../components/ui/States";
-import { patientsApi } from "../api/patients";
+import { adminApi, fullName } from "../api/admin";
 import { apiErrorMessage } from "../api/client";
 
 import PatientOverviewTab from "./patient/PatientOverviewTab";
@@ -27,7 +27,7 @@ export default function PatientDetails() {
   const navigate = useNavigate();
   const [tab, setTab] = useState("overview");
 
-  const query = useQuery({ queryKey: ["patient", id], queryFn: () => patientsApi.get(id) });
+  const query = useQuery({ queryKey: ["admin", "user", id], queryFn: () => adminApi.getUser(id) });
 
   if (query.isLoading) {
     return (
@@ -50,24 +50,22 @@ export default function PatientDetails() {
     );
   }
 
-  const patient = query.data;
-  const age = patient.dateOfBirth
-    ? Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 3600 * 1000))
-    : null;
+  const { user, counts } = query.data;
+  const name = fullName(user);
 
   return (
     <AdminShell>
-      <Topbar title={patient.user.fullName} subtitle={`Patient ID: ${patient.patientCode}`} />
+      <Topbar title={name} subtitle={user.mrn ? `MRN: ${user.mrn} · ${user.email}` : user.email} />
       <main className="flex-1 space-y-4 p-6">
         <button onClick={() => navigate(-1)} className="text-sm text-ink-500 hover:text-ink-700">
           ← Back to Patients
         </button>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Badge tone="teal">{patient.patientCode}</Badge>
-          {age !== null && <Badge tone="neutral">{age} years</Badge>}
-          <Badge tone="neutral">{patient.gender}</Badge>
-          <Badge tone="green">Monitoring</Badge>
+          {user.mrn && <Badge tone="teal">{user.mrn}</Badge>}
+          <Badge tone="neutral">{user.role}</Badge>
+          {user.emailVerified ? <Badge tone="green">Verified</Badge> : <Badge tone="neutral">Unverified</Badge>}
+          {counts && <Badge tone="neutral">{counts.vitals} vitals · {counts.journal} journal · {counts.plans} plans</Badge>}
         </div>
 
         <div className="flex gap-1 border-b border-ink-900/5">
@@ -89,7 +87,7 @@ export default function PatientDetails() {
           {tab === "vitals" && <PatientVitalsTab patientId={id} />}
           {tab === "journal" && <PatientJournalTab patientId={id} />}
           {tab === "treatment" && <PatientTreatmentTab patientId={id} />}
-          {tab === "care-team" && <PatientCareTeamTab patientId={id} />}
+          {tab === "care-team" && <PatientCareTeamTab patientId={id} user={user} />}
         </div>
       </main>
     </AdminShell>

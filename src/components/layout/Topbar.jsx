@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { fullName } from "../../api/admin";
 import { useClickPulse, ClickPulseRing } from "../../hooks/useClickPulse";
 
 export function Topbar({ title, subtitle, actions }) {
@@ -23,9 +24,9 @@ export function Topbar({ title, subtitle, actions }) {
         {actions}
         <div className="flex items-center gap-2 rounded-full border border-ink-900/10 py-1 pl-1 pr-3">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-soft text-xs font-semibold text-primary">
-            {(user?.fullName || "A").slice(0, 1)}
+            {fullName(user).slice(0, 1).toUpperCase()}
           </div>
-          <span className="text-sm font-medium text-ink-700">{user?.fullName}</span>
+          <span className="text-sm font-medium text-ink-700">{fullName(user)}</span>
         </div>
         <button
           onClick={handleLogout}

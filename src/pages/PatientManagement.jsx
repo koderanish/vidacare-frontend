@@ -7,7 +7,7 @@ import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Pagination } from "../components/ui/Pagination";
 import { LoadingState, ErrorState, EmptyState } from "../components/ui/States";
-import { patientsApi } from "../api/patients";
+import { adminApi, fullName } from "../api/admin";
 import { apiErrorMessage } from "../api/client";
 
 export default function PatientManagement() {
@@ -15,10 +15,13 @@ export default function PatientManagement() {
   const [params, setParams] = useSearchParams();
   const [q, setQ] = useState(params.get("q") || "");
   const page = parseInt(params.get("page") || "1", 10);
+  const limit = 20;
 
   const query = useQuery({
-    queryKey: ["patients", { q: params.get("q"), page }],
-    queryFn: () => patientsApi.list({ q: params.get("q") || undefined, page, limit: 10 }),
+    queryKey: ["admin", "patients", { q: params.get("q"), page }],
+    queryFn: () =>
+      adminApi.listUsers({ search: params.get("q") || undefined, role: "patient", page, limit }),
+    placeholderData: (prev) => prev,
   });
 
   function handleSearchSubmit(e) {
@@ -36,64 +39,57 @@ export default function PatientManagement() {
     setParams(next);
   }
 
+  const users = query.data?.users || [];
+  const total = query.data?.total || 0;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+
   return (
     <AdminShell>
-      <Topbar title="Patients" subtitle="Review demo patient records and care assignments." />
+      <Topbar title="Patients" subtitle="All patient accounts on the shared backend." />
       <main className="flex-1 space-y-4 p-6">
-        <div className="rounded-lg border border-sky-100 bg-sky-50 px-4 py-2 text-xs text-sky-800">
-          DEMO DATA · This workspace contains sample patient records for product demonstration only.
-        </div>
-
         <Card className="space-y-4">
           <form onSubmit={handleSearchSubmit}>
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search patients by name"
+              placeholder="Search patients by name, email, or MRN"
               className="w-full max-w-sm rounded-lg border border-ink-900/10 px-3 py-2 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
             />
           </form>
 
           {query.isLoading && <LoadingState label="Loading patients..." />}
           {query.isError && <ErrorState message={apiErrorMessage(query.error)} onRetry={query.refetch} />}
-          {query.data && query.data.items.length === 0 && (
+          {query.data && users.length === 0 && (
             <EmptyState title="No patient records match these filters" />
           )}
 
-          {query.data && query.data.items.length > 0 && (
+          {users.length > 0 && (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-ink-900/5 text-left text-xs uppercase tracking-wide text-ink-400">
                     <th className="py-2 pr-4 font-medium">Patient</th>
-                    <th className="py-2 pr-4 font-medium">Code</th>
-                    <th className="py-2 pr-4 font-medium">Assigned Doctor</th>
-                    <th className="py-2 pr-4 font-medium">Assigned Caregiver</th>
+                    <th className="py-2 pr-4 font-medium">MRN</th>
+                    <th className="py-2 pr-4 font-medium">Verified</th>
+                    <th className="py-2 pr-4 font-medium">Joined</th>
                     <th className="py-2 pr-4 font-medium"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {query.data.items.map((p) => (
+                  {users.map((p) => (
                     <tr
                       key={p.id}
                       className="cursor-pointer border-b border-ink-900/5 last:border-0 hover:bg-ink-900/[0.02]"
                       onClick={() => navigate(`/patients/${p.id}`)}
                     >
-                      <td className="py-3 pr-4 font-medium text-ink-900">{p.user.fullName}</td>
-                      <td className="py-3 pr-4 text-ink-500">{p.patientCode}</td>
                       <td className="py-3 pr-4">
-                        {p.doctorAssignments?.[0] ? (
-                          p.doctorAssignments[0].doctor.fullName
-                        ) : (
-                          <Badge tone="neutral">Unassigned</Badge>
-                        )}
+                        <p className="font-medium text-ink-900">{fullName(p)}</p>
+                        <p className="text-xs text-ink-500">{p.email}</p>
                       </td>
-                      <td className="py-3 pr-4">
-                        {p.caregiverAssignments?.[0] ? (
-                          p.caregiverAssignments[0].caregiver.fullName
-                        ) : (
-                          <Badge tone="neutral">Unassigned</Badge>
-                        )}
+                      <td className="py-3 pr-4 text-ink-500">{p.mrn || "—"}</td>
+                      <td className="py-3 pr-4 text-ink-500">{p.emailVerified ? "✓" : "—"}</td>
+                      <td className="py-3 pr-4 text-ink-500">
+                        {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "—"}
                       </td>
                       <td className="py-3 pr-4 text-right text-teal-700">View</td>
                     </tr>
@@ -105,10 +101,10 @@ export default function PatientManagement() {
 
           {query.data && (
             <Pagination
-              page={query.data.pagination.page}
-              totalPages={query.data.pagination.totalPages}
-              total={query.data.pagination.total}
-              limit={query.data.pagination.limit}
+              page={page}
+              totalPages={totalPages}
+              total={total}
+              limit={limit}
               onChange={goToPage}
             />
           )}

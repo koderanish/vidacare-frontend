@@ -47,8 +47,9 @@ export default function Login() {
     try {
       // login() holds this promise open for the branded transition overlay
       // (rendered by AuthProvider, above the router) before resolving.
+      // Only admins may use this portal — AuthContext rejects other roles.
       const user = await login(email, password);
-      if (user.status !== "ACTIVE") {
+      if (user.role !== "admin") {
         navigate("/pending", { replace: true });
       } else {
         navigate(location.state?.from?.pathname || "/", { replace: true });
