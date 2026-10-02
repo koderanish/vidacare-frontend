@@ -88,7 +88,16 @@ export default function Settings() {
                 </div>
               ))}
               <div className="flex justify-end pt-2">
-                <Button loading={saveM.isPending} onClick={() => saveM.mutate(form)}>
+                <Button
+                  loading={saveM.isPending}
+                  disabled={!FIELDS.every((f) => String(form[f.key] ?? "").trim() !== "" && Number.isFinite(Number(form[f.key])))}
+                  onClick={() => {
+                    const body = Object.fromEntries(
+                      FIELDS.map((f) => [f.key, Number(form[f.key])])
+                    );
+                    saveM.mutate(body);
+                  }}
+                >
                   Save thresholds
                 </Button>
               </div>
