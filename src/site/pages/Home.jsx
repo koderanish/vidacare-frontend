@@ -70,13 +70,13 @@ export default function Home() {
           <div data-reveal className="relative mx-auto w-full max-w-xl pb-8 md:pb-0">
             <div className="grid h-[26rem] grid-cols-5 grid-rows-6 gap-3 md:h-[35rem]">
               <div className="col-span-3 row-span-6 overflow-hidden rounded-[2rem] ring-1 ring-white/10">
-                <Photo src="/images/hero-doctor.jpg" alt="A VidaCare doctor reviewing patient data" icon={Stethoscope} />
+                <Photo src="/images/hero-doctor.jpg" alt="A smiling doctor with a stethoscope" icon={Stethoscope} />
               </div>
               <div className="col-span-2 row-span-3 overflow-hidden rounded-[2rem] ring-1 ring-white/10">
-                <Photo src="/images/hero-patient.jpg" alt="A patient checking their vitals on a phone" icon={HeartPulse} />
+                <Photo src="/images/hero-patient.jpg" alt="An older woman smiling at her phone" icon={HeartPulse} />
               </div>
               <div className="col-span-2 row-span-3 overflow-hidden rounded-[2rem] ring-1 ring-white/10">
-                <Photo src="/images/hero-caregiver.jpg" alt="A caregiver with a family member" icon={Users} />
+                <Photo src="/images/hero-caregiver.jpg" alt="A caregiver smiling with an older woman" className="object-left" icon={Users} />
               </div>
             </div>
 

@@ -1,8 +1,10 @@
-Hero photos for the home page. Drop JPG files here with exactly these names:
+Hero photos for the home page (src/site/pages/Home.jsx):
 
-  hero-doctor.jpg     tall / portrait   (about 900 x 1200)  - a doctor
-  hero-patient.jpg    square-ish        (about 800 x 800)   - a patient using a phone or smartwatch
-  hero-caregiver.jpg  square-ish        (about 800 x 800)   - a caregiver with a family member
+  hero-doctor.jpg     900x1200   Vitaly Gariev, Unsplash  (unsplash.com/photos/XqMo4OlBnh0)
+  hero-patient.jpg    800x800    Vitaly Gariev, Unsplash  (unsplash.com/photos/cHbyGVOQspk)
+  hero-caregiver.jpg  800x800    Age Cymru, Unsplash      (unsplash.com/photos/dMhB7w99ju8)
 
-Keep each file under ~250 KB (compress at squoosh.app). Until a file exists, the page shows a
-green placeholder in its place, so nothing breaks.
+All three are free under the Unsplash License (commercial use allowed, attribution not required,
+but appreciated). They are stock photos, not VidaCare users or staff. Replace them with real
+photos of your own team or clinic whenever available: keep the same file names and similar sizes
+(under ~250 KB each).
