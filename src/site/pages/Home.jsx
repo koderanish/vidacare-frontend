@@ -12,6 +12,7 @@ import { Cta } from "../components/Cta";
 import { Eyebrow } from "../components/Section";
 import { APP_URL } from "../components/Nav";
 import { HOME_SERVICE_IDS, SERVICES } from "../data";
+import { useHeroCollage } from "../useHeroCollage";
 import { useReveal } from "../useReveal";
 
 const MARQUEE_ITEMS = ["Vitals", "ECG insights", "Smart alerts", "Caregivers", "Verified doctors", "Resources"];
@@ -23,6 +24,7 @@ const MANIFESTO =
 export default function Home() {
   const root = useRef(null);
   useReveal(root);
+  useHeroCollage(root);
 
   return (
     <div ref={root}>
@@ -67,20 +69,20 @@ export default function Home() {
             </ul>
           </div>
 
-          <div data-reveal className="relative mx-auto w-full max-w-xl pb-8 md:pb-0">
+          <div data-collage className="relative mx-auto w-full max-w-xl pb-8 md:pb-0">
             <div className="grid h-[26rem] grid-cols-5 grid-rows-6 gap-3 md:h-[35rem]">
-              <div className="col-span-3 row-span-6 overflow-hidden rounded-[2rem] ring-1 ring-white/10">
+              <div data-photo className="col-span-3 row-span-6 overflow-hidden rounded-[2rem] ring-1 ring-white/10">
                 <Photo src="/images/hero-doctor.jpg" alt="A smiling doctor with a stethoscope" icon={Stethoscope} />
               </div>
-              <div className="col-span-2 row-span-3 overflow-hidden rounded-[2rem] ring-1 ring-white/10">
+              <div data-photo className="col-span-2 row-span-3 overflow-hidden rounded-[2rem] ring-1 ring-white/10">
                 <Photo src="/images/hero-patient.jpg" alt="An older woman smiling at her phone" icon={HeartPulse} />
               </div>
-              <div className="col-span-2 row-span-3 overflow-hidden rounded-[2rem] ring-1 ring-white/10">
+              <div data-photo className="col-span-2 row-span-3 overflow-hidden rounded-[2rem] ring-1 ring-white/10">
                 <Photo src="/images/hero-caregiver.jpg" alt="A caregiver smiling with an older woman" className="object-left" icon={Users} />
               </div>
             </div>
 
-            <div className="absolute -bottom-2 -left-3 flex items-center gap-4 rounded-2xl bg-white p-4 text-site-ink shadow-2xl md:-left-8">
+            <div data-float-card className="absolute -bottom-2 -left-3 flex items-center gap-4 rounded-2xl bg-white p-4 text-site-ink shadow-2xl md:-left-8">
               <div>
                 <p className="font-label text-[10px] uppercase tracking-[0.2em] text-ink-500">Heart rate</p>
                 <p className="mt-1 font-display text-3xl font-bold tabular-nums leading-none">
@@ -90,7 +92,7 @@ export default function Home() {
               <EcgLine className="h-12 w-28" color="#16a34a" viewWidth={600} beats={2} strokeWidth={4} />
             </div>
 
-            <div className="absolute -right-2 top-6 flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-site-ink shadow-xl md:-right-6">
+            <div data-float-card className="absolute -right-2 top-6 flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-site-ink shadow-xl md:-right-6">
               <ShieldCheck className="h-4 w-4 text-vida-500" /> Verified doctor
             </div>
           </div>
