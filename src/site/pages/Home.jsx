@@ -1,8 +1,9 @@
 import { useRef } from "react";
 import { Link } from "react-router-dom";
+import { HeartPulse, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { EcgLine } from "../components/EcgLine";
 import { Lines } from "../components/Lines";
-import { Magnetic } from "../components/Magnetic";
+import { Photo } from "../components/Photo";
 import { Marquee } from "../components/Marquee";
 import { ScrubText } from "../components/ScrubText";
 import { ServiceStack } from "../components/ServiceStack";
@@ -25,39 +26,72 @@ export default function Home() {
 
   return (
     <div ref={root}>
-      <section className="site-noise relative flex min-h-[100svh] flex-col justify-end overflow-hidden bg-site-ink px-5 pb-10 pt-36 text-white md:pb-14">
+      <section className="site-noise relative overflow-hidden bg-site-ink px-5 pb-16 pt-32 text-white md:pb-24 md:pt-40">
         <div className="site-grid pointer-events-none absolute inset-0" />
-        <div className="pointer-events-none absolute -bottom-1/3 left-1/2 h-[70vh] w-[90vw] -translate-x-1/2 rounded-full bg-vida-500/25 blur-[120px]" />
+        <div className="pointer-events-none absolute -right-40 top-0 h-[40rem] w-[40rem] rounded-full bg-vida-500/25 blur-[130px]" />
         <EcgLine
-          className="pointer-events-none absolute inset-x-0 top-[42%] h-40 w-full -translate-y-1/2 md:h-56"
+          className="pointer-events-none absolute inset-x-0 top-[36%] h-40 w-full -translate-y-1/2 opacity-25 md:h-56"
           viewWidth={1600}
           beats={4}
         />
 
-        <div className="relative mx-auto w-full max-w-7xl">
-          <p data-reveal className="mb-6 font-label text-xs uppercase tracking-[0.25em] text-vida-300">
-            ● Remote care platform
-          </p>
-          <Lines
-            lines={["Your health,", <span key="b" className="text-vida-400">always in sync.</span>]}
-            className="font-display text-[clamp(3.2rem,11vw,10.5rem)] font-bold leading-[0.9] tracking-[-0.045em]"
-          />
-          <div className="mt-10 flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
-            <p data-reveal className="max-w-md text-base leading-relaxed text-white/65 [text-wrap:pretty]">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-16 md:grid-cols-[1.05fr_0.95fr] md:gap-10">
+          <div>
+            <p data-reveal className="mb-6 font-label text-xs uppercase tracking-[0.25em] text-vida-300">
+              ● Remote care platform
+            </p>
+            <Lines
+              lines={["Your health,", <span key="b" className="text-vida-400">always in sync.</span>]}
+              className="font-display text-[clamp(2.9rem,6.6vw,6.2rem)] font-bold leading-[0.95] tracking-[-0.04em]"
+            />
+            <p data-reveal className="mt-8 max-w-md text-base leading-relaxed text-white/70 [text-wrap:pretty]">
               VidaCare connects patients, caregivers and verified doctors with live vitals, ECG insights and timely alerts, so care never waits.
             </p>
-            <div data-reveal className="flex items-center gap-7">
-              <Magnetic>
-                <a
-                  href={APP_URL}
-                  className="flex h-28 w-28 items-center justify-center rounded-full bg-vida-400 text-sm font-semibold text-site-ink transition-transform duration-300 hover:scale-105 md:h-32 md:w-32"
-                >
-                  Open app ↗
-                </a>
-              </Magnetic>
+            <div data-reveal className="mt-9 flex flex-wrap items-center gap-4">
+              <a
+                href={APP_URL}
+                className="rounded-full bg-vida-400 px-7 py-3.5 text-sm font-semibold text-site-ink transition hover:bg-vida-300 active:scale-[0.96]"
+              >
+                Open web app ↗
+              </a>
               <Link to="/services" className="text-sm font-semibold underline decoration-vida-400 decoration-2 underline-offset-8 hover:no-underline">
                 Explore services
               </Link>
+            </div>
+            <ul data-reveal className="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/60">
+              {["Verified doctors", "Private by default", "Web and mobile"].map((t) => (
+                <li key={t} className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-vida-400" /> {t}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div data-reveal className="relative mx-auto w-full max-w-xl pb-8 md:pb-0">
+            <div className="grid h-[26rem] grid-cols-5 grid-rows-6 gap-3 md:h-[35rem]">
+              <div className="col-span-3 row-span-6 overflow-hidden rounded-[2rem] ring-1 ring-white/10">
+                <Photo src="/images/hero-doctor.jpg" alt="A VidaCare doctor reviewing patient data" icon={Stethoscope} />
+              </div>
+              <div className="col-span-2 row-span-3 overflow-hidden rounded-[2rem] ring-1 ring-white/10">
+                <Photo src="/images/hero-patient.jpg" alt="A patient checking their vitals on a phone" icon={HeartPulse} />
+              </div>
+              <div className="col-span-2 row-span-3 overflow-hidden rounded-[2rem] ring-1 ring-white/10">
+                <Photo src="/images/hero-caregiver.jpg" alt="A caregiver with a family member" icon={Users} />
+              </div>
+            </div>
+
+            <div className="absolute -bottom-2 -left-3 flex items-center gap-4 rounded-2xl bg-white p-4 text-site-ink shadow-2xl md:-left-8">
+              <div>
+                <p className="font-label text-[10px] uppercase tracking-[0.2em] text-ink-500">Heart rate</p>
+                <p className="mt-1 font-display text-3xl font-bold tabular-nums leading-none">
+                  78 <span className="text-sm font-medium text-ink-500">BPM</span>
+                </p>
+              </div>
+              <EcgLine className="h-12 w-28" color="#16a34a" viewWidth={600} beats={2} strokeWidth={4} />
+            </div>
+
+            <div className="absolute -right-2 top-6 flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-site-ink shadow-xl md:-right-6">
+              <ShieldCheck className="h-4 w-4 text-vida-500" /> Verified doctor
             </div>
           </div>
         </div>
