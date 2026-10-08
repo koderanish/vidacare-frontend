@@ -7,10 +7,10 @@ import { ServiceVisual } from "./ServiceVisual";
 gsap.registerPlugin(ScrollTrigger);
 
 const TONES = [
-  { card: "bg-site-ink text-white", panel: "bg-white/5 ring-1 ring-white/10", accent: "#4ade80", inverse: "#04140f", muted: "text-white/65", tick: "text-vida-300" },
-  { card: "bg-vida-deep text-white", panel: "bg-white/5 ring-1 ring-white/10", accent: "#4ade80", inverse: "#04140f", muted: "text-white/65", tick: "text-vida-300" },
-  { card: "bg-vida-400 text-site-ink", panel: "bg-black/10 ring-1 ring-black/10", accent: "#04140f", inverse: "#ffffff", muted: "text-site-ink/70", tick: "text-site-ink" },
-  { card: "bg-white text-site-ink ring-1 ring-black/10", panel: "bg-vida-50 ring-1 ring-vida-200", accent: "#16a34a", inverse: "#ffffff", muted: "text-ink-500", tick: "text-vida-500" },
+  { card: "bg-site-ink text-white", panel: "bg-white/5 ring-1 ring-white/10", accent: "#e5a63a", inverse: "#130b30", muted: "text-white/65", tick: "text-vida-300" },
+  { card: "bg-vida-deep text-white", panel: "bg-white/5 ring-1 ring-white/10", accent: "#e5a63a", inverse: "#130b30", muted: "text-white/65", tick: "text-vida-300" },
+  { card: "bg-vida-400 text-site-ink", panel: "bg-black/10 ring-1 ring-black/10", accent: "#130b30", inverse: "#ffffff", muted: "text-site-ink/70", tick: "text-site-ink" },
+  { card: "bg-white text-site-ink ring-1 ring-black/10", panel: "bg-vida-50 ring-1 ring-vida-200", accent: "#6c40b8", inverse: "#ffffff", muted: "text-ink-500", tick: "text-vida-500" },
 ];
 
 // Cards that stick to the top and stack up as you scroll; each one shrinks slightly when the next covers it.

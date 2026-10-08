@@ -6,8 +6,8 @@ import { vitalsApi } from "../../api/vitals";
 import { apiErrorMessage } from "../../api/client";
 
 const CHARTS = [
-  { type: "blood_pressure", label: "Blood pressure", color: "#23827c", color2: "#7aa7ff" },
-  { type: "heart_rate", label: "Heart rate", color: "#2fa39a" },
+  { type: "blood_pressure", label: "Blood pressure", color: "#6c40b8", color2: "#7aa7ff" },
+  { type: "heart_rate", label: "Heart rate", color: "#9b6fe0" },
   { type: "spo2", label: "SpO2", color: "#4c9be8" },
   { type: "weight", label: "Weight", color: "#d98a3d" },
 ];
@@ -34,7 +34,7 @@ export default function PatientVitalsTab({ patientId }) {
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={points}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eef2f2" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#efeaf8" />
                   <XAxis dataKey="date" tickFormatter={(d) => String(d).slice(5)} fontSize={11} stroke="#93a9b0" />
                   <YAxis fontSize={11} stroke="#93a9b0" domain={["auto", "auto"]} />
                   <Tooltip />

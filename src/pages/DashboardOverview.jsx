@@ -75,7 +75,7 @@ export default function DashboardOverview() {
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={activityChartQ.data || []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eef2f2" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#efeaf8" />
                   <XAxis
                     dataKey="day"
                     tickFormatter={(d) => String(d || "").slice(5)}
@@ -84,7 +84,7 @@ export default function DashboardOverview() {
                   />
                   <YAxis fontSize={12} stroke="#93a9b0" allowDecimals={false} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="count" stroke="#23827c" strokeWidth={2} dot={false} name="Readings" />
+                  <Line type="monotone" dataKey="count" stroke="#6c40b8" strokeWidth={2} dot={false} name="Readings" />
                 </LineChart>
               </ResponsiveContainer>
             )}
@@ -100,11 +100,11 @@ export default function DashboardOverview() {
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={regChartQ.data || []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eef2f2" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#efeaf8" />
                   <XAxis dataKey="day" tickFormatter={(d) => String(d || "").slice(5)} fontSize={12} stroke="#93a9b0" />
                   <YAxis fontSize={12} stroke="#93a9b0" allowDecimals={false} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="count" stroke="#2fa39a" strokeWidth={2} dot name="New users" />
+                  <Line type="monotone" dataKey="count" stroke="#e5a63a" strokeWidth={2} dot name="New users" />
                 </LineChart>
               </ResponsiveContainer>
             )}

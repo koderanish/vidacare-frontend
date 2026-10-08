@@ -12,7 +12,7 @@ const buildPath = (viewWidth, beats) => {
   return `${d} H${viewWidth}`;
 };
 
-export function EcgLine({ className = "", color = "#4ade80", viewWidth = 600, beats = 3, strokeWidth = 3 }) {
+export function EcgLine({ className = "", color = "#a086e0", viewWidth = 600, beats = 3, strokeWidth = 3 }) {
   const lineRef = useRef(null);
   const glowRef = useRef(null);
   const path = useMemo(() => buildPath(viewWidth, beats), [viewWidth, beats]);

@@ -1,7 +1,5 @@
-import { HeartPulse } from "lucide-react";
-
-// The app's one loading motif: the brand mark (teal circle + heart, same as
-// the sidebar/login logo) with a blue arc rotating around it, buffering-style.
+// The app's one loading motif: the brand mark (the client logo icon on a white
+// disc) with a gold arc rotating around it, buffering-style.
 // Reused everywhere something needs to show "working" instead of each place
 // inventing its own spinner.
 const SIZES = {
@@ -20,14 +18,14 @@ export function BrandLoader({ size = "md", className = "" }) {
       aria-label="Loading"
     >
       <span
-        className="absolute inset-0 animate-spin rounded-full border-transparent border-t-blue-600 border-r-blue-600"
+        className="absolute inset-0 animate-spin rounded-full border-transparent border-t-gold-500 border-r-gold-500"
         style={{ borderWidth: s.border, borderStyle: "solid", animationDuration: "0.85s" }}
       />
       <span
-        className="flex items-center justify-center rounded-full bg-primary text-primary-foreground"
+        className="flex items-center justify-center rounded-full bg-white shadow-card"
         style={{ width: s.logo, height: s.logo }}
       >
-        <HeartPulse style={{ width: s.icon, height: s.icon }} />
+        <img src="/images/logo-mark.png" alt="" style={{ height: s.icon + 6 }} className="w-auto" />
       </span>
     </span>
   );
@@ -37,7 +35,7 @@ export function BrandLoaderOverlay({ label = "Loading...", tone = "light" }) {
   return (
     <div
       className={`fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 ${
-        tone === "light" ? "bg-white" : "bg-[#f7fafa]"
+        tone === "light" ? "bg-white" : "bg-[#f8f6fd]"
       }`}
     >
       <BrandLoader size="lg" />

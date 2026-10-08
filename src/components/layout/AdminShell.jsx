@@ -10,7 +10,7 @@ import { MobileNav } from "./MobileNav";
 // as a scrollable top row.
 export function AdminShell({ children }) {
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f7fafa]">
+    <div className="flex h-screen overflow-hidden bg-[#f8f6fd]">
       <Sidebar />
       <div className="flex h-full flex-1 flex-col overflow-y-auto overflow-x-hidden">
         <MobileNav />

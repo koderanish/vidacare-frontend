@@ -8,7 +8,6 @@ import {
   BookOpen,
   Bell,
   Settings,
-  HeartPulse,
 } from "lucide-react";
 
 // Matches the reference sidebar (ui/source/02-dashboard-overview.jsx etc.):
@@ -53,14 +52,9 @@ function NavItem({ to, label, icon: Icon, end }) {
 export function Sidebar() {
   return (
     <aside className="hidden w-[248px] shrink-0 flex-col overflow-y-auto border-r border-border bg-white px-4 py-6 md:flex">
-      <div className="mb-8 flex shrink-0 items-center gap-2.5 px-1">
-        <div className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-          <HeartPulse className="size-4" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold leading-tight text-foreground">VidaCare</p>
-          <p className="text-xs leading-tight text-muted-foreground">Admin Portal</p>
-        </div>
+      <div className="mb-8 shrink-0 px-1">
+        <img src="/images/logo.png" alt="VidaCare Technologies" className="h-12 w-auto" />
+        <p className="mt-1 text-xs leading-tight text-muted-foreground">Admin Portal</p>
       </div>
       <nav className="flex flex-1 flex-col" aria-label="Primary navigation">
         <div className="flex flex-col gap-1">

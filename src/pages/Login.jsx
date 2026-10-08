@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
-import { HeartPulse, Eye, EyeOff, LockKeyhole, X } from "lucide-react";
+import { Eye, EyeOff, LockKeyhole, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { apiErrorMessage } from "../api/client";
 import { authApi } from "../api/auth";
@@ -16,12 +16,12 @@ import { authApi } from "../api/auth";
 // reference exactly without touching the app's separate teal token scale.
 // Real CSS syntax (spaces, not underscores) — these are used exclusively as
 // inline `style` values in this file, never as Tailwind bracket classes.
-const primary = "oklch(0.723 0.219 149.579)";
+const primary = "#6c40b8";
 const foreground = "oklch(0.141 0.005 285.823)";
 const mutedForeground = "oklch(0.552 0.016 285.938)";
 const border = "oklch(0.92 0.004 286.32)";
 const destructive = "oklch(0.577 0.245 27.325)";
-const leftPanelBg = "oklch(0.97 0.015 220)";
+const leftPanelBg = "#f3effc";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -70,17 +70,7 @@ export default function Login() {
         style={{ backgroundColor: leftPanelBg }}
       >
         <div className="flex flex-col gap-8">
-          <div className="flex items-center gap-4">
-            <div
-              className="flex size-12 items-center justify-center rounded-full text-white"
-              style={{ backgroundColor: primary }}
-            >
-              <HeartPulse className="size-6" />
-            </div>
-            <span className="text-2xl font-semibold tracking-tight" style={{ color: foreground }}>
-              VidaCare
-            </span>
-          </div>
+          <img src="/images/logo.png" alt="VidaCare Technologies" className="h-16 w-auto self-start" />
           <div className="flex max-w-[520px] flex-col gap-4 pt-12">
             <h1
               className="text-5xl font-semibold leading-tight tracking-tight"
@@ -100,25 +90,25 @@ export default function Login() {
           >
             <path
               d="M18 188C74 130 103 202 156 145C207 90 245 121 290 77C339 29 375 103 425 64C464 34 493 54 542 18"
-              stroke="oklch(0.723 0.219 149.579 / 0.45)"
+              stroke="rgba(108, 64, 184, 0.45)"
               strokeWidth="3"
               strokeLinecap="round"
             />
             <path
               d="M16 224C76 204 107 154 164 181C220 208 250 180 300 145C349 111 377 151 426 126C475 101 508 118 544 88"
-              stroke="oklch(0.6 0.118 184.704 / 0.38)"
+              stroke="rgba(229, 166, 58, 0.55)"
               strokeWidth="3"
               strokeLinecap="round"
             />
             <path
               d="M72 48C105 74 119 102 152 94C191 84 203 45 239 52C275 59 283 104 320 106C359 108 371 72 404 79C438 86 449 119 488 132"
-              stroke="oklch(0.398 0.07 227.392 / 0.24)"
+              stroke="rgba(43, 29, 110, 0.24)"
               strokeWidth="2"
               strokeLinecap="round"
             />
-            <circle cx="156" cy="145" r="6" fill="oklch(0.723 0.219 149.579 / 0.7)" />
-            <circle cx="300" cy="145" r="6" fill="oklch(0.6 0.118 184.704 / 0.65)" />
-            <circle cx="425" cy="64" r="6" fill="oklch(0.723 0.219 149.579 / 0.7)" />
+            <circle cx="156" cy="145" r="6" fill="rgba(108, 64, 184, 0.7)" />
+            <circle cx="300" cy="145" r="6" fill="rgba(229, 166, 58, 0.8)" />
+            <circle cx="425" cy="64" r="6" fill="rgba(108, 64, 184, 0.7)" />
           </svg>
         </div>
         <div className="text-sm" style={{ color: mutedForeground }}>
