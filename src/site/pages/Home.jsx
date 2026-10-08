@@ -92,7 +92,7 @@ export default function Home() {
               <EcgLine className="h-12 w-28" color="#6c40b8" viewWidth={600} beats={2} strokeWidth={4} />
             </div>
 
-            <div data-float-card className="absolute -right-2 top-6 flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-site-ink shadow-xl md:-right-6">
+            <div data-float-card className="absolute -bottom-3 right-3 flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-site-ink shadow-xl md:-bottom-4 md:-right-4">
               <ShieldCheck className="h-4 w-4 text-vida-500" /> Verified doctor
             </div>
           </div>
