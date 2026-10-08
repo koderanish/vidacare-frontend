@@ -1,7 +1,7 @@
 import { Bell, BookOpen, HeartPulse, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { EcgLine } from "./EcgLine";
 
-const INK = "#04140f";
+const INK = "#130b30";
 
 const NODES = [
   { icon: HeartPulse, style: { left: "50%", top: "0%" } },

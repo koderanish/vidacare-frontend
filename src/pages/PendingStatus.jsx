@@ -15,7 +15,7 @@ export default function PendingStatus() {
   const isAdmin = user?.role === "admin";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f7fafa] px-4">
+    <div className="flex min-h-screen items-center justify-center bg-[#f8f6fd] px-4">
       <Card className="max-w-md text-center">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-700">
           ⏳

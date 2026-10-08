@@ -5,28 +5,31 @@ export default {
     extend: {
       colors: {
         teal: {
-          50: "#f0fbfa", 100: "#d9f4f1", 200: "#b6e9e3", 300: "#86d8cf",
-          400: "#52c0b4", 500: "#2fa39a", 600: "#23827c", 700: "#1f6965",
-          800: "#1e5451", 900: "#1c4644",
+          50: "#f5f2fd", 100: "#ebe5fa", 200: "#d7cbf3", 300: "#bba7ea",
+          400: "#9a7bdc", 500: "#7a4fc9", 600: "#6238b0", 700: "#4d2a8e",
+          800: "#3b2175", 900: "#2b1d6e",
         },
+        // Brand purple from the client logo (deep wordmark purple -> lighter accent).
         vida: {
-          50: "#f0fdf4", 100: "#dcfce7", 200: "#bbf7d0", 300: "#4ade80", 400: "#22c55e",
-          500: "#16a34a", 600: "#15803d", 700: "#166534", deep: "#062b26", night: "#04201c",
+          50: "#f5f2fd", 100: "#ebe5fa", 200: "#d7cbf3", 300: "#bba7ea", 400: "#a086e0",
+          500: "#6c40b8", 600: "#57309f", 700: "#43257f", deep: "#2b1d6e", night: "#1c1248",
         },
-        site: { ink: "#04140f", paper: "#f1f5ee", mist: "#e2eadf" },
-        ink: { 900: "#0f2027", 700: "#25414c", 500: "#54707a", 300: "#93a9b0" },
+        // Gold from the logo's "TECHNOLOGIES" wordmark.
+        gold: { 300: "#f0c36b", 400: "#eab04d", 500: "#e5a63a", 600: "#c98a22" },
+        site: { ink: "#130b30", paper: "#f7f4fd", mist: "#ebe5f8" },
+        ink: { 900: "#1a1333", 700: "#3a3158", 500: "#6b6485", 300: "#a9a4bd" },
         // Exact tokens confirmed from literal oklch() values in the Flowstep
         // reference JSX (ui/source/*.jsx) rather than approximated - this is
-        // the same green used on the login page, now shared app-wide.
+        // the brand purple from the client logo, now shared app-wide.
         primary: {
-          DEFAULT: "oklch(0.723 0.219 149.579)",
+          DEFAULT: "#6c40b8",
           foreground: "oklch(1 0 0)",
           // Precomputed alpha variant: Tailwind 3.4 can't auto-derive a /NN
           // opacity modifier from a raw oklch() theme color (only from
           // hex/rgb), so the soft tint is its own token instead.
-          soft: "oklch(0.723 0.219 149.579 / 0.15)",
+          soft: "rgba(108, 64, 184, 0.15)",
         },
-        secondary: "oklch(0.6 0.118 184.704)",
+        secondary: "#e5a63a",
         border: "oklch(0.92 0.004 286.32)",
         foreground: "oklch(0.141 0.005 285.823)",
         "muted-foreground": "oklch(0.552 0.016 285.938)",
@@ -37,7 +40,7 @@ export default {
         label: ["\"JetBrains Mono\"", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       boxShadow: {
-        card: "0 1px 2px rgba(15, 32, 39, 0.04), 0 4px 16px rgba(15, 32, 39, 0.06)",
+        card: "0 1px 2px rgba(26, 19, 51, 0.04), 0 4px 16px rgba(26, 19, 51, 0.06)",
       },
       borderRadius: { xl2: "1rem" },
     },

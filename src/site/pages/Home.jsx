@@ -89,7 +89,7 @@ export default function Home() {
                   78 <span className="text-sm font-medium text-ink-500">BPM</span>
                 </p>
               </div>
-              <EcgLine className="h-12 w-28" color="#16a34a" viewWidth={600} beats={2} strokeWidth={4} />
+              <EcgLine className="h-12 w-28" color="#6c40b8" viewWidth={600} beats={2} strokeWidth={4} />
             </div>
 
             <div data-float-card className="absolute -right-2 top-6 flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-site-ink shadow-xl md:-right-6">

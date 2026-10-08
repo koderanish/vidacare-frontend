@@ -50,7 +50,7 @@ export default function Services() {
 
       <section className="bg-site-paper px-5 py-24 md:py-36">
         <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
-          <span data-reveal className="mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-vida-400 text-site-ink shadow-[0_0_60px_rgba(34,197,94,0.5)]">
+          <span data-reveal className="mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-vida-400 text-site-ink shadow-[0_0_60px_rgba(160,134,224,0.5)]">
             <ShieldCheck className="h-9 w-9" />
           </span>
           <Lines
