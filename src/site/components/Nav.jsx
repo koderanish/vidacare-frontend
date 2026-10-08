@@ -23,7 +23,7 @@ export function Nav() {
   return (
     <header className="fixed inset-x-0 top-4 z-50 flex justify-center px-4">
       <div className="w-full max-w-4xl rounded-3xl bg-site-ink/55 ring-1 ring-white/10 backdrop-blur-xl">
-        <div className="flex h-14 items-center justify-between pl-4 pr-2.5">
+        <div className="flex h-[4.5rem] items-center justify-between pl-3 pr-3">
           <Link to="/" aria-label="VidaCare home" onClick={() => setOpen(false)}>
             <Logo light />
           </Link>
