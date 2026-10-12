@@ -60,6 +60,15 @@ export default function Home() {
                 Explore services
               </Link>
             </div>
+            <p data-reveal className="mt-6 text-sm text-white/60">
+              Questions? Write to us at{" "}
+              <a
+                href="mailto:shikha@vidacaretechnologies.ca"
+                className="font-semibold text-vida-300 underline decoration-vida-400/60 underline-offset-4 hover:text-vida-200"
+              >
+                shikha@vidacaretechnologies.ca
+              </a>
+            </p>
             <ul data-reveal className="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/60">
               {["Verified doctors", "Private by default", "Web and mobile"].map((t) => (
                 <li key={t} className="flex items-center gap-2">
