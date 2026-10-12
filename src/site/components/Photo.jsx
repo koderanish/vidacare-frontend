@@ -2,7 +2,7 @@ import { useState } from "react";
 
 // <img> that falls back to a green placeholder panel if the file is missing,
 // so the layout never shows a broken-image icon.
-export function Photo({ src, alt, className = "", icon: Icon }) {
+export function Photo({ src, alt, className = "", icon: Icon, width, height, priority = false }) {
   const [failed, setFailed] = useState(false);
 
   if (failed) {
@@ -16,5 +16,17 @@ export function Photo({ src, alt, className = "", icon: Icon }) {
       </div>
     );
   }
-  return <img src={src} alt={alt} onError={() => setFailed(true)} className={`h-full w-full object-cover ${className}`} />;
+  return (
+    <img
+      src={src}
+      alt={alt}
+      width={width}
+      height={height}
+      loading={priority ? "eager" : "lazy"}
+      decoding="async"
+      fetchPriority={priority ? "high" : "auto"}
+      onError={() => setFailed(true)}
+      className={`h-full w-full object-cover ${className}`}
+    />
+  );
 }

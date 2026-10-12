@@ -8,6 +8,7 @@ import About from "./pages/About";
 import Services from "./pages/Services";
 import Contact from "./pages/Contact";
 import { scrollToTop, startSmoothScroll } from "./smoothScroll";
+import { useSeo } from "./useSeo";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -18,6 +19,7 @@ function ScrollToTop() {
 }
 
 export default function SiteApp() {
+  useSeo();
   useEffect(() => startSmoothScroll(), []);
 
   return (

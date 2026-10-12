@@ -6,9 +6,11 @@ export function Logo({ light = false }) {
       <img
         src="/images/logo-circle.png"
         alt="VidaCare Technologies"
+        width={480}
+        height={480}
         className="h-14 w-14 rounded-full"
       />
     );
   }
-  return <img src="/images/logo.png" alt="VidaCare Technologies" className="h-9 w-auto md:h-10" />;
+  return <img src="/images/logo.png" alt="VidaCare Technologies" width={962} height={348} className="h-9 w-auto md:h-10" />;
 }
