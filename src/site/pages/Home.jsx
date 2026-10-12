@@ -81,13 +81,13 @@ export default function Home() {
           <div data-collage className="relative mx-auto w-full max-w-xl pb-8 md:pb-0">
             <div className="grid h-[26rem] grid-cols-5 grid-rows-6 gap-3 md:h-[35rem]">
               <div data-photo className="col-span-3 row-span-6 overflow-hidden rounded-[2rem] ring-1 ring-white/10">
-                <Photo src="/images/hero-doctor.jpg" alt="A smiling doctor with a stethoscope" icon={Stethoscope} />
+                <Photo src="/images/hero-doctor.jpg" alt="A smiling doctor with a stethoscope" width={900} height={1200} priority icon={Stethoscope} />
               </div>
               <div data-photo className="col-span-2 row-span-3 overflow-hidden rounded-[2rem] ring-1 ring-white/10">
-                <Photo src="/images/hero-patient.jpg" alt="An older woman smiling at her phone" icon={HeartPulse} />
+                <Photo src="/images/hero-patient.jpg" alt="An older woman smiling at her phone" width={800} height={800} priority icon={HeartPulse} />
               </div>
               <div data-photo className="col-span-2 row-span-3 overflow-hidden rounded-[2rem] ring-1 ring-white/10">
-                <Photo src="/images/hero-caregiver.jpg" alt="A caregiver smiling with an older woman" className="object-left" icon={Users} />
+                <Photo src="/images/hero-caregiver.jpg" alt="A caregiver smiling with an older woman" width={800} height={800} priority className="object-left" icon={Users} />
               </div>
             </div>
 

@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
+import { APP_URL } from "../seo";
 
-export const APP_URL = "https://app.vidacaretechnologies.ca";
+export { APP_URL };
 
 const LINKS = [
   { to: "/", label: "Home", end: true },
