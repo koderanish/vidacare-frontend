@@ -5,10 +5,9 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 const IMAGE_REST_SCALE = 1.12; // images sit slightly oversized so parallax never shows an edge
-const MOUSE_DEPTH = [10, 16, 22]; // px of cursor-follow movement per photo
 
 // Animates the hero photo collage inside `scope`:
-//   [data-collage]     wrapper (scroll parallax range, cursor-follow area)
+//   [data-collage]     wrapper (scroll parallax range)
 //   [data-photo]       each photo frame (its first child is the <img>)
 //   [data-float-card]  floating cards that fade in, then bob gently
 // Skipped entirely for prefers-reduced-motion.
@@ -16,7 +15,6 @@ export function useHeroCollage(scope) {
   useLayoutEffect(() => {
     const mm = gsap.matchMedia();
     mm.add("(prefers-reduced-motion: no-preference)", () => {
-      const cleanups = [];
       const ctx = gsap.context(() => {
         const collage = scope.current && scope.current.querySelector("[data-collage]");
         const frames = gsap.utils.toArray("[data-photo]");
@@ -57,41 +55,8 @@ export function useHeroCollage(scope) {
             }
           );
         });
-
-        // 4. Cursor follow (desktop only): each frame shifts a little, deeper ones more.
-        const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-        if (!fine) return;
-        const movers = frames.map((frame, i) => ({
-          x: gsap.quickTo(frame, "x", { duration: 0.9, ease: "power3.out" }),
-          y: gsap.quickTo(frame, "y", { duration: 0.9, ease: "power3.out" }),
-          depth: MOUSE_DEPTH[i] || MOUSE_DEPTH[MOUSE_DEPTH.length - 1],
-        }));
-        const onMove = (e) => {
-          const rect = collage.getBoundingClientRect();
-          const nx = (e.clientX - rect.left) / rect.width - 0.5;
-          const ny = (e.clientY - rect.top) / rect.height - 0.5;
-          movers.forEach((m) => {
-            m.x(nx * m.depth);
-            m.y(ny * m.depth);
-          });
-        };
-        const onLeave = () => {
-          movers.forEach((m) => {
-            m.x(0);
-            m.y(0);
-          });
-        };
-        collage.addEventListener("mousemove", onMove);
-        collage.addEventListener("mouseleave", onLeave);
-        cleanups.push(() => {
-          collage.removeEventListener("mousemove", onMove);
-          collage.removeEventListener("mouseleave", onLeave);
-        });
       }, scope);
-      return () => {
-        cleanups.forEach((cleanup) => cleanup());
-        ctx.revert();
-      };
+      return () => ctx.revert();
     });
     return () => mm.revert();
   }, [scope]);
