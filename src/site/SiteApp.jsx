@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Services from "./pages/Services";
 import Contact from "./pages/Contact";
+import Privacy from "./pages/Privacy";
 import { scrollToTop, startSmoothScroll } from "./smoothScroll";
 import { useSeo } from "./useSeo";
 
@@ -33,6 +34,7 @@ export default function SiteApp() {
           <Route path="/about" element={<About />} />
           <Route path="/services" element={<Services />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

@@ -18,6 +18,7 @@ export function Footer() {
             <li><Link className="hover:text-vida-300" to="/about">About</Link></li>
             <li><Link className="hover:text-vida-300" to="/services">Services</Link></li>
             <li><Link className="hover:text-vida-300" to="/contact">Contact</Link></li>
+            <li><Link className="hover:text-vida-300" to="/privacy">Privacy Policy</Link></li>
           </ul>
         </div>
         <div>
@@ -37,7 +38,8 @@ export function Footer() {
       </p>
 
       <div className="relative border-t border-white/10 py-5 text-center font-label text-[11px] uppercase tracking-[0.2em] text-white/45">
-        © {new Date().getFullYear()} VidaCare Technologies Inc.
+        © {new Date().getFullYear()} VidaCare Technologies Inc. ·{" "}
+        <Link className="hover:text-vida-300" to="/privacy">Privacy Policy</Link>
       </div>
     </footer>
   );
