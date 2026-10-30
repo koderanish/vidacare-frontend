@@ -2,6 +2,7 @@
 // and the static HTML that is written for every public page at build time (see vite-seo-plugin.js).
 // Plain JS with no JSX so Node can import it during the build.
 import { HOME_SERVICE_IDS, ROLES, SERVICES, STEPS } from "./data.js";
+import { SECTIONS as PRIVACY_SECTIONS, UPDATED as PRIVACY_UPDATED } from "./privacy.js";
 
 export const SITE_URL = "https://vidacaretechnologies.ca";
 export const APP_URL = "https://app.vidacaretechnologies.ca";
@@ -48,6 +49,14 @@ export const ROUTES = [
     description: "Questions about VidaCare? Email our team and we will get back to you.",
     pageType: "ContactPage",
     priority: "0.6",
+  },
+  {
+    path: "/privacy",
+    name: "Privacy Policy",
+    title: "Privacy Policy | VidaCare",
+    description: "How VidaCare Technologies Inc. collects, uses and protects personal and health information on our website and mobile app.",
+    pageType: "WebPage",
+    priority: "0.3",
   },
 ];
 
@@ -191,6 +200,17 @@ const serviceList = (items) =>
     .join("");
 
 const BODY = {
+  "/privacy": () => `
+    <h1>Privacy Policy</h1>
+    <p>Last updated ${esc(PRIVACY_UPDATED)}.</p>
+    ${PRIVACY_SECTIONS.map((section) => `
+      <section>
+        <h2>${esc(section.title)}</h2>
+        ${(section.body || []).map((p) => `<p>${esc(p)}</p>`).join("")}
+        ${section.list ? `<ul>${section.list.map((item) => `<li>${esc(item)}</li>`).join("")}</ul>` : ""}
+      </section>
+    `).join("")}
+  `,
   "/": () => `
     <h1>Your health, always in sync.</h1>
     <p>VidaCare connects patients, caregivers and verified doctors with live vitals, ECG insights and timely alerts, so care never waits.</p>
@@ -227,7 +247,7 @@ const BODY = {
 export const bodyFor = (route) => `<div id="seo-static" style="max-width:56rem;margin:0 auto;padding:7rem 1.25rem 4rem;font-family:Inter,system-ui,sans-serif;line-height:1.6;color:#130b30">
       <header><a href="/"><strong>VidaCare</strong></a> · ${links([["/about/", "About"], ["/services/", "Services"], ["/contact/", "Contact"]])}</header>
       <main>${BODY[route.path]()}</main>
-      <footer><p>© ${LEGAL_NAME}</p></footer>
+      <footer><p>© ${LEGAL_NAME} · <a href="/privacy/">Privacy Policy</a></p></footer>
     </div>`;
 
 // ---- Sitemap -------------------------------------------------------------------------------
