@@ -9,6 +9,10 @@ import { ADMIN_BASE, isAdminPath } from "./adminBase";
 import { AuthProvider } from "./context/AuthContext";
 import "./index.css";
 
+// Build marker: keeps each release on a fresh hashed bundle so browsers never
+// keep serving a stale cached copy. Bump this when a deploy needs a new URL.
+window.__VIDACARE_BUILD__ = "2026-11-19.1";
+
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false, staleTime: 15000 } },
 });
